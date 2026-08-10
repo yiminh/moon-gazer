@@ -7,7 +7,7 @@ CONFIG="${1:-release}"
 swift build -c "$CONFIG"
 BIN="$(swift build -c "$CONFIG" --show-bin-path)/MoonGazer"
 
-APP="MoonGazer.app"
+APP="Moon Gazer.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 

@@ -11,24 +11,24 @@
     <text x="486" y="58" fill="#4dc772" font-size="14" font-weight="500">WORKING ×1</text>
     <text x="40" y="86" fill="#ffffff" fill-opacity="0.34" font-size="14">gazer@example.com</text>
 
-    <!-- big: Session 5h -->
-    <text x="40" y="168" fill="#ffffff" fill-opacity="0.92" font-size="72" font-weight="300">47</text>
+    <!-- hero: Weekly 7d -->
+    <text x="40" y="168" fill="#ffffff" fill-opacity="0.92" font-size="72" font-weight="300">38</text>
     <text x="128" y="168" fill="#ffffff" fill-opacity="0.58" font-size="30" font-weight="300">%</text>
-    <text x="560" y="150" text-anchor="end" fill="#ffffff" fill-opacity="0.58" font-size="16" font-weight="500">Session 5h</text>
-    <text x="560" y="170" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="13">resets in 2h 10m</text>
+    <text x="560" y="150" text-anchor="end" fill="#ffffff" fill-opacity="0.58" font-size="16" font-weight="500">Weekly 7d</text>
+    <text x="560" y="170" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="13">resets in 3d 4h</text>
     <rect x="40" y="188" width="520" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.07"/>
-    <rect x="40" y="188" width="244" height="9" rx="4.5" fill="#d97857"/>
-    <rect x="325" y="185" width="2" height="15" fill="#ffffff" fill-opacity="0.85"/>
-    <text x="40" y="222" fill="#4dc772" font-size="13" font-weight="500">▼ 8% under pace</text>
+    <rect x="40" y="188" width="198" height="9" rx="4.5" fill="#d97857"/>
+    <rect x="268" y="188" width="2" height="9" fill="#ffffff" fill-opacity="0.9"/>
+    <text x="40" y="222" fill="#4dc772" font-size="13" font-weight="500">▼ 6% under pace</text>
 
-    <!-- weekly -->
-    <text x="40" y="270" fill="#ffffff" fill-opacity="0.58" font-size="14" font-weight="500">Weekly 7d</text>
-    <text x="500" y="270" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="13">resets in 3d 4h</text>
-    <text x="560" y="270" text-anchor="end" fill="#ffffff" fill-opacity="0.92" font-size="15" font-weight="500">38%</text>
+    <!-- secondary: Session 5h -->
+    <text x="40" y="270" fill="#ffffff" fill-opacity="0.58" font-size="14" font-weight="500">Session 5h</text>
+    <text x="500" y="270" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="13">resets in 2h 10m</text>
+    <text x="560" y="270" text-anchor="end" fill="#ffffff" fill-opacity="0.92" font-size="15" font-weight="500">47%</text>
     <rect x="40" y="280" width="520" height="6" rx="3" fill="#ffffff" fill-opacity="0.07"/>
-    <rect x="40" y="280" width="198" height="6" rx="3" fill="#d97857"/>
-    <rect x="268" y="278" width="2" height="12" fill="#ffffff" fill-opacity="0.85"/>
-    <text x="40" y="306" fill="#4dc772" font-size="13" font-weight="500">▼ 6% under pace</text>
+    <rect x="40" y="280" width="244" height="6" rx="3" fill="#d97857"/>
+    <rect x="325" y="280" width="2" height="6" fill="#ffffff" fill-opacity="0.9"/>
+    <text x="40" y="306" fill="#4dc772" font-size="13" font-weight="500">▼ 8% under pace</text>
 
     <line x1="40" y1="345" x2="560" y2="345" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
     <text x="40" y="378" fill="#ffffff" fill-opacity="0.34" font-size="12" font-weight="600" letter-spacing="2">TASKS</text>
@@ -51,17 +51,17 @@
     <text x="498" y="58" fill="#f2bf40" font-size="14" font-weight="500">IDLE ×1</text>
     <text x="40" y="86" fill="#ffffff" fill-opacity="0.34" font-size="14">gazer@example.com</text>
 
-    <!-- big: Weekly 7d (Codex has no active 5h window here) -->
+    <!-- hero: Weekly 7d -->
     <text x="40" y="168" fill="#ffffff" fill-opacity="0.92" font-size="72" font-weight="300">61</text>
     <text x="128" y="168" fill="#ffffff" fill-opacity="0.58" font-size="30" font-weight="300">%</text>
     <text x="560" y="150" text-anchor="end" fill="#ffffff" fill-opacity="0.58" font-size="16" font-weight="500">Weekly 7d</text>
     <text x="560" y="170" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="13">resets in 5d 3h</text>
     <rect x="40" y="188" width="520" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.07"/>
     <rect x="40" y="188" width="317" height="9" rx="4.5" fill="#10a37f"/>
-    <rect x="174" y="185" width="2" height="15" fill="#ffffff" fill-opacity="0.85"/>
+    <rect x="174" y="188" width="2" height="9" fill="#ffffff" fill-opacity="0.9"/>
     <text x="40" y="222" fill="#f0594d" font-size="13" font-weight="500">▲ 35% over pace</text>
 
-    <!-- 5h placeholder -->
+    <!-- secondary: Session 5h placeholder (API not metering it now) -->
     <text x="40" y="270" fill="#ffffff" fill-opacity="0.30" font-size="14" font-weight="500">Session 5h</text>
     <text x="560" y="270" text-anchor="end" fill="#ffffff" fill-opacity="0.30" font-size="13">no active window</text>
 

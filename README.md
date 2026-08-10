@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🌙 Moon Gazer
+<img src="icon.png" width="128" alt="Moon Gazer icon">
+
+# Moon Gazer 🌙
 
 **A native macOS dashboard that watches your Claude and Codex usage — side by side, always on.**
 
@@ -116,6 +118,21 @@ becomes the app icon automatically (via `sips` + `iconutil`).
 - On launch it centers on a dedicated **960×540-point** screen if one is connected (e.g. a
   small 1920×1080 panel at 2×), else the smallest secondary screen, else the main screen.
 - The content scales to fill the window, keeping aspect ratio.
+
+## Recommended display
+
+Moon Gazer is happiest on a small, always-on secondary screen parked beside your main
+display. The layout is tuned for a **960×540-point** canvas — i.e. a **1920×1080 panel at
+2× scaling**, which is what a compact 7-inch monitor gives you.
+
+A good fit is a small portable 1080p touchscreen such as the
+[PeakDo 7" Portable Monitor](https://www.amazon.com/PeakDo-Portable-Monitor-Touchscreen-Lightweight/dp/B0DF1P542S)
+(1920×1080, set macOS display scaling so it renders as 960×540 points). Any 1920×1080
+secondary display works — this is just the size the design targets. Set that display's
+scaling to “looks like 960×540”, drop Moon Gazer on it, and press the green button for
+full screen.
+
+*(Not affiliated with or sponsored by PeakDo or Amazon — just a hardware suggestion.)*
 
 ## For AI coding assistants (porting this to another Mac)
 

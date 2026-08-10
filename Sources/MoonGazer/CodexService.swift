@@ -113,9 +113,19 @@ final class CodexService {
                               windowSeconds: seconds > 0 ? seconds : nil)
         }
 
+        // Normalize by window length rather than API position: the weekly window is
+        // always the hero (unified with Claude), the session (5h) window the secondary.
         let rateLimit = json["rate_limit"] as? [String: Any]
-        let primary = window(rateLimit?["primary_window"] as? [String: Any], id: "primary")
-        let secondary = window(rateLimit?["secondary_window"] as? [String: Any], id: "secondary")
+        let windows = [
+            window(rateLimit?["primary_window"] as? [String: Any], id: "w0"),
+            window(rateLimit?["secondary_window"] as? [String: Any], id: "w1"),
+        ].compactMap { $0 }
+        let weekly = windows.filter { ($0.windowSeconds ?? 0) >= 86_400 }
+            .max { ($0.windowSeconds ?? 0) < ($1.windowSeconds ?? 0) }
+            ?? windows.max { ($0.windowSeconds ?? 0) < ($1.windowSeconds ?? 0) }
+        let session = windows.first { $0.isSessionWindow }
+        let primary = weekly
+        let secondary = session
 
         var extraWindows: [RateWindow] = []
         if let additional = json["additional_rate_limits"] as? [[String: Any]] {

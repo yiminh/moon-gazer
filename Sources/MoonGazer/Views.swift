@@ -77,12 +77,12 @@ struct ProviderColumn: View {
                 BigWindowView(window: primary, accent: accent, now: now, showPace: showPace)
                 Spacer().frame(height: 18)
             }
-            if snapshot.provider == .codex, missingSession, snapshot.primary != nil {
-                placeholderRow
-                Spacer().frame(height: 12)
-            }
+            // Session (5h) row directly under the weekly hero — or a placeholder when
+            // the provider isn't currently reporting a session window (e.g. idle Codex).
             if let secondary = snapshot.secondary {
                 SmallWindowView(window: secondary, accent: accent, now: now, showPace: showPace)
+            } else if snapshot.primary != nil, missingSession {
+                placeholderRow
             }
             ForEach(snapshot.extraWindows) { window in
                 Spacer().frame(height: 12)
@@ -295,10 +295,11 @@ struct ProgressBar: View {
                     .fill(Theme.barColor(percent, accent: accent))
                     .frame(width: max(height, geo.size.width * min(percent, 100) / 100))
                 if let pace {
+                    // Flush with the bar height, centered on the elapsed-time fraction.
                     Rectangle()
-                        .fill(Color.white.opacity(0.85))
-                        .frame(width: 2, height: height + 6)
-                        .offset(x: geo.size.width * min(max(pace, 0), 1) - 1, y: -3)
+                        .fill(Color.white.opacity(0.9))
+                        .frame(width: 2, height: height)
+                        .offset(x: geo.size.width * min(max(pace, 0), 1) - 1)
                 }
             }
         }
