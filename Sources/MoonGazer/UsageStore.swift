@@ -11,13 +11,6 @@ final class UsageStore: ObservableObject {
     @Published var now = Date()
 
     var omlxEnabled: Bool { omlxService.isConfigured }
-    @Published var showPace: Bool = UserDefaults.standard.object(forKey: "showPace") as? Bool ?? true {
-        didSet { UserDefaults.standard.set(showPace, forKey: "showPace") }
-    }
-    @Published var barColorMode: BarColorMode =
-        UserDefaults.standard.string(forKey: "barColorMode").flatMap(BarColorMode.init) ?? .accentRedHigh {
-        didSet { UserDefaults.standard.set(barColorMode.rawValue, forKey: "barColorMode") }
-    }
 
     private let claudeService = ClaudeService()
     private let codexService = CodexService()

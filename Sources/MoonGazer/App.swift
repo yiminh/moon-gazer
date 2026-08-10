@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 final class DashboardWindow: NSWindow {
@@ -9,13 +10,18 @@ final class DashboardWindow: NSWindow {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var window: DashboardWindow!
+    private var settingsWindow: NSWindow?
     private let store = UsageStore()
+    private let settings = AppSettings()
+    private var cancellables: Set<AnyCancellable> = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
+        Theme.settings = settings
+        updateSystemAppearance()
         buildMenu()
 
-        let hosting = NSHostingView(rootView: DashboardView(store: store))
+        let hosting = NSHostingView(rootView: DashboardView(store: store, settings: settings))
         window = DashboardWindow(
             contentRect: NSRect(x: 0, y: 0, width: 960, height: 540),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -36,10 +42,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.collectionBehavior = [.fullScreenPrimary, .managed]
 
         positionWindow()
+        applyAppearance()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
 
         store.start()
+
+        // Re-apply window chrome (appearance / background) whenever settings change.
+        settings.objectWillChange
+            .sink { [weak self] in DispatchQueue.main.async { self?.applyAppearance() } }
+            .store(in: &cancellables)
 
         NotificationCenter.default.addObserver(
             self, selector: #selector(screensChanged),
@@ -47,6 +59,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSWorkspace.shared.notificationCenter.addObserver(
             self, selector: #selector(didWake),
             name: NSWorkspace.didWakeNotification, object: nil)
+        DistributedNotificationCenter.default().addObserver(
+            self, selector: #selector(systemThemeChanged),
+            name: NSNotification.Name("AppleInterfaceThemeChangedNotification"), object: nil)
+    }
+
+    @objc private func systemThemeChanged() { updateSystemAppearance(); applyAppearance() }
+
+    private func updateSystemAppearance() {
+        settings.systemIsDark = UserDefaults.standard.string(forKey: "AppleInterfaceStyle") == "Dark"
+    }
+
+    private func applyAppearance() {
+        let appearance: NSAppearance?
+        switch settings.appearance {
+        case .system: appearance = nil
+        case .light: appearance = NSAppearance(named: .aqua)
+        case .dark: appearance = NSAppearance(named: .darkAqua)
+        }
+        NSApp.appearance = appearance
+        window?.appearance = appearance
+        window?.backgroundColor = NSColor(settings.palette.bg)
+    }
+
+    @objc private func openSettings() {
+        if settingsWindow == nil {
+            let w = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 760, height: 600),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                backing: .buffered, defer: false)
+            w.title = "Moon Gazer Settings"
+            w.contentView = NSHostingView(rootView: SettingsView(settings: settings))
+            w.isReleasedWhenClosed = false
+            w.center()
+            settingsWindow = w
+        }
+        settingsWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc private func screensChanged() { positionWindow() }
@@ -88,6 +137,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: "About Moon Gazer", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
         appMenu.addItem(.separator())
+        let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.target = self
+        appMenu.addItem(settingsItem)
         let refreshItem = NSMenuItem(title: "Refresh Now", action: #selector(refreshNow), keyEquivalent: "r")
         refreshItem.target = self
         appMenu.addItem(refreshItem)
@@ -103,46 +155,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                     action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")
         fullScreen.keyEquivalentModifierMask = [.control, .command]
         viewMenu.addItem(fullScreen)
-        let paceItem = NSMenuItem(title: "Show Pace Marker", action: #selector(togglePace), keyEquivalent: "p")
-        paceItem.target = self
-        paceItem.state = store.showPace ? .on : .off
-        self.paceMenuItem = paceItem
-        viewMenu.addItem(paceItem)
-
-        viewMenu.addItem(.separator())
-        let barColorsItem = NSMenuItem(title: "Bar Colors", action: nil, keyEquivalent: "")
-        let barColorsMenu = NSMenu(title: "Bar Colors")
-        for mode in BarColorMode.allCases {
-            let item = NSMenuItem(title: mode.title, action: #selector(setBarMode(_:)), keyEquivalent: "")
-            item.target = self
-            item.representedObject = mode.rawValue
-            item.state = store.barColorMode == mode ? .on : .off
-            barColorsMenu.addItem(item)
-            barColorItems.append(item)
-        }
-        barColorsItem.submenu = barColorsMenu
-        viewMenu.addItem(barColorsItem)
-
         viewItem.submenu = viewMenu
         mainMenu.addItem(viewItem)
 
         NSApp.mainMenu = mainMenu
-    }
-
-    private var paceMenuItem: NSMenuItem?
-    private var barColorItems: [NSMenuItem] = []
-
-    @objc private func togglePace() {
-        store.showPace.toggle()
-        paceMenuItem?.state = store.showPace ? .on : .off
-    }
-
-    @objc private func setBarMode(_ sender: NSMenuItem) {
-        guard let raw = sender.representedObject as? String, let mode = BarColorMode(rawValue: raw) else { return }
-        store.barColorMode = mode
-        for item in barColorItems {
-            item.state = (item.representedObject as? String) == raw ? .on : .off
-        }
     }
 
     @objc private func refreshNow() { store.refreshUsage() }

@@ -1,20 +1,5 @@
 import SwiftUI
 
-/// How usage bars are coloured. User-selectable (View → Bar Colors).
-enum BarColorMode: String, CaseIterable {
-    case accentRedHigh   // provider accent, red only at ≥90% (default)
-    case ramp            // green <70, amber 70–90, red ≥90 — same on every pane
-    case accentOnly      // always the provider accent, never changes
-
-    var title: String {
-        switch self {
-        case .accentRedHigh: return "Accent, red at 90%+"
-        case .ramp: return "Green → Amber → Red"
-        case .accentOnly: return "Accent only (no change)"
-        }
-    }
-}
-
 private struct BarColorModeKey: EnvironmentKey {
     static let defaultValue: BarColorMode = .accentRedHigh
 }
@@ -25,32 +10,53 @@ extension EnvironmentValues {
     }
 }
 
+/// Dynamic theme facade backed by the live AppSettings (assigned once at launch).
+/// Views observe `AppSettings`, so their bodies re-run on change and re-read these.
+@MainActor
 enum Theme {
-    static let background = Color(red: 0.055, green: 0.055, blue: 0.07)
-    static let panel = Color.white.opacity(0.03)
-    static let divider = Color.white.opacity(0.08)
-    static let textPrimary = Color.white.opacity(0.92)
-    static let textSecondary = Color.white.opacity(0.58)
-    static let textTertiary = Color.white.opacity(0.34)
-    static let claudeAccent = Color(red: 0.85, green: 0.47, blue: 0.34)
-    static let codexAccent = Color(red: 0.06, green: 0.64, blue: 0.50)
-    static let omlxAccent = Color(red: 0.48, green: 0.55, blue: 0.98)
+    static var settings: AppSettings!
+
+    private static var p: Palette { settings.palette }
+
+    static var background: Color { p.bg }
+    static var surface: Color { p.surface }
+    static var divider: Color { p.divider }
+    static var textPrimary: Color { p.textPrimary }
+    static var textSecondary: Color { p.textSecondary }
+    static var textTertiary: Color { p.textTertiary }
+    static var claudeAccent: Color { p.claudeAccent }
+    static var codexAccent: Color { p.codexAccent }
+    static var omlxAccent: Color { p.omlxAccent }
+
+    // Fixed status colours (pace direction / online dot) — intentionally not themable.
     static let amber = Color(red: 0.95, green: 0.75, blue: 0.25)
     static let red = Color(red: 0.94, green: 0.35, blue: 0.30)
     static let green = Color(red: 0.30, green: 0.78, blue: 0.45)
 
+    /// Body text font (respects the body-bold toggle by nudging the weight up).
     static func mono(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .monospaced)
+        settings.bodyTypeface.font(size: size, weight: settings.bodyBold ? bolder(weight) : weight)
+    }
+    /// Big-number font (the hero digits); non-bold defaults to a light, elegant weight.
+    static func num(_ size: CGFloat, _ weight: Font.Weight = .light) -> Font {
+        settings.numberTypeface.font(size: size, weight: settings.numberBold ? .bold : weight)
+    }
+    private static func bolder(_ w: Font.Weight) -> Font.Weight {
+        switch w {
+        case .ultraLight, .thin, .light, .regular, .medium: return .semibold
+        case .semibold: return .bold
+        default: return w
+        }
     }
 
     static func barColor(_ percent: Double, accent: Color, mode: BarColorMode) -> Color {
         switch mode {
         case .accentRedHigh:
-            return percent >= 90 ? red : accent
+            return percent >= settings.dangerThreshold ? p.danger : accent
         case .ramp:
-            if percent >= 90 { return red }
-            if percent >= 70 { return amber }
-            return green
+            if percent >= settings.dangerThreshold { return p.danger }
+            if percent >= settings.warnThreshold { return p.warn }
+            return accent
         case .accentOnly:
             return accent
         }
@@ -61,6 +67,7 @@ enum Theme {
 /// (so full-screen on the dedicated display fills edge to edge, cleanly).
 struct DashboardView: View {
     @ObservedObject var store: UsageStore
+    @ObservedObject var settings: AppSettings
 
     var body: some View {
         GeometryReader { geo in
@@ -70,29 +77,39 @@ struct DashboardView: View {
                 .scaleEffect(scale)
                 .frame(width: geo.size.width, height: geo.size.height)
         }
-        .background(Theme.background)
-        .environment(\.colorScheme, .dark)
+        .background(settings.palette.bg)
+        .environment(\.colorScheme, settings.effectiveDark ? .dark : .light)
         .ignoresSafeArea()
     }
 
+    private var panes: [Pane] { settings.visiblePanes(omlxConfigured: store.omlxEnabled) }
+
     private var canvas: some View {
-        HStack(spacing: 0) {
-            ProviderColumn(snapshot: store.claude, tasks: store.claudeTasks,
-                           accent: Theme.claudeAccent, now: store.now, showPace: store.showPace)
-            divider
-            ProviderColumn(snapshot: store.codex, tasks: store.codexTasks,
-                           accent: Theme.codexAccent, now: store.now, showPace: store.showPace)
-            if store.omlxEnabled {
-                divider
-                OMLXColumn(snapshot: store.omlx, accent: Theme.omlxAccent, now: store.now)
+        let pal = settings.palette
+        return HStack(spacing: 0) {
+            ForEach(Array(panes.enumerated()), id: \.element) { index, pane in
+                if index > 0 { Rectangle().fill(pal.divider).frame(width: 1) }
+                paneView(pane, palette: pal)
             }
         }
         .frame(width: 960, height: 540)
-        .background(Theme.background)
-        .environment(\.barColorMode, store.barColorMode)
+        .background(pal.bg)
+        .environment(\.barColorMode, settings.barColorMode)
     }
 
-    private var divider: some View { Rectangle().fill(Theme.divider).frame(width: 1) }
+    @ViewBuilder
+    private func paneView(_ pane: Pane, palette pal: Palette) -> some View {
+        switch pane {
+        case .claude:
+            ProviderColumn(snapshot: store.claude, tasks: store.claudeTasks,
+                           accent: pal.claudeAccent, now: store.now, showPace: settings.showPace)
+        case .codex:
+            ProviderColumn(snapshot: store.codex, tasks: store.codexTasks,
+                           accent: pal.codexAccent, now: store.now, showPace: settings.showPace)
+        case .omlx:
+            OMLXColumn(snapshot: store.omlx, accent: pal.omlxAccent, now: store.now)
+        }
+    }
 }
 
 struct ProviderColumn: View {
@@ -248,8 +265,8 @@ struct BigWindowView: View {
         VStack(alignment: .leading, spacing: 9) {
             HStack(alignment: .lastTextBaseline, spacing: 10) {
                 Text("\(Int(window.usedPercent.rounded()))")
-                    .font(Theme.mono(58, .light)).foregroundColor(Theme.textPrimary)
-                Text("%").font(Theme.mono(24, .light)).foregroundColor(Theme.textSecondary)
+                    .font(Theme.num(58)).foregroundColor(Theme.textPrimary)
+                Text("%").font(Theme.num(24)).foregroundColor(Theme.textSecondary)
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(window.label).font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
@@ -291,7 +308,7 @@ struct SmallWindowView: View {
 }
 
 /// "▲ n% over pace" (amber/red) or "▼ n% under pace" (green) or "● on pace".
-@ViewBuilder
+@MainActor @ViewBuilder
 func paceCaption(_ window: RateWindow, now: Date) -> some View {
     if let delta = window.paceDelta(now: now) {
         let rounded = Int(delta.rounded())
@@ -423,8 +440,8 @@ struct OMLXColumn: View {
         VStack(alignment: .leading, spacing: 9) {
             HStack(alignment: .lastTextBaseline, spacing: 10) {
                 Text("\(Int(gpu.rounded()))")
-                    .font(Theme.mono(58, .light)).foregroundColor(Theme.textPrimary)
-                Text("%").font(Theme.mono(24, .light)).foregroundColor(Theme.textSecondary)
+                    .font(Theme.num(58)).foregroundColor(Theme.textPrimary)
+                Text("%").font(Theme.num(24)).foregroundColor(Theme.textSecondary)
                 Spacer()
                 Text("GPU").font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
             }
@@ -437,8 +454,8 @@ struct OMLXColumn: View {
             HStack(alignment: big ? .lastTextBaseline : .firstTextBaseline) {
                 if big {
                     Text("\(Int(mem.rounded()))")
-                        .font(Theme.mono(58, .light)).foregroundColor(Theme.textPrimary)
-                    Text("%").font(Theme.mono(24, .light)).foregroundColor(Theme.textSecondary)
+                        .font(Theme.num(58)).foregroundColor(Theme.textPrimary)
+                    Text("%").font(Theme.num(24)).foregroundColor(Theme.textSecondary)
                 } else {
                     Text("MEM").font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
                 }

@@ -29,10 +29,7 @@ Two panes, one per provider. Each shows:
 - **Extra usage / credits** when present
 - **Pace marker** — a tick on each bar at the fraction of the window's *time* that has
   elapsed. Bar past the tick = burning faster than the clock (`▲ n% over pace`); short of
-  it = you have headroom (`▼ n% under pace`). Toggle with **View → Show Pace Marker (⌘P)**.
-- **Bar colors** — pick under **View → Bar Colors**: *Accent, red at 90%+* (default — each
-  pane keeps its colour, turning red only when critically high), *Green → Amber → Red* (one
-  universal ramp by percentage), or *Accent only* (never changes).
+  it = you have headroom (`▼ n% under pace`).
 - **TASKS** — running (●), idle (○) and recently-finished (✓) Claude Code / Codex CLI
   sessions, with an overall status light in the header.
 - last-updated time, marked *stale* if a fetch has been failing.
@@ -126,6 +123,27 @@ becomes the app icon automatically (via `sips` + `iconutil`).
 - On launch it centers on a dedicated **960×540-point** screen if one is connected (e.g. a
   small 1920×1080 panel at 2×), else the smallest secondary screen, else the main screen.
 - The content scales to fill the window, keeping aspect ratio.
+
+## Customization (Settings — ⌘,)
+
+Open **Settings** from the app menu (or ⌘,). Everything persists to
+`~/.config/moongazer/settings.json`.
+
+- **Templates** — five modern looks to start from: *Terminal* (the default — monospaced,
+  near-black), *Material*, *Cupertino*, *Editorial* (serif), and *Luxe*. Pick one, then
+  tweak anything below; your changes stick.
+- **Appearance** — Light, Dark, or Follow System.
+- **Typography** — separate fonts for **body text** and the **big numbers**, each with its
+  own bold toggle. Choose from SF Mono, Menlo (mono), New York, Charter (serif), SF Pro, SF
+  Rounded, Helvetica Neue, Avenir Next (sans) — all system fonts, nothing bundled.
+- **Colors** — set the **accent per pane** (Claude / Codex / OMLX), the **warning** and
+  **danger** colours, and the **thresholds** they kick in at. Pick from 32 curated presets
+  (≈16 tuned for dark backgrounds, ≈16 for light, brand colours included) or type any hex /
+  use the native colour wheel. Bar behaviour has three modes — *accent, alert at high %*,
+  *accent → warn → danger*, or *accent only* (which greys out the alert colours since they
+  no longer apply).
+- **Layout** — choose which columns show and their left-to-right order; hide any you don't
+  need (OMLX appears once configured).
 
 ## Recommended display
 
