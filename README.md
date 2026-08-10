@@ -165,9 +165,12 @@ echo '{"omlxUrl": "http://<remote-host>:8082/metrics"}' > ~/.config/moongazer/co
 (Or set `MOONGAZER_OMLX_URL=http://<remote-host>:8082/metrics` in the launch environment.)
 
 Restart Moon Gazer and the OMLX pane appears: GPU% as the hero, memory as the second bar,
-with an ONLINE/OFFLINE indicator. The agent is polled every few seconds. GPU% requires
-Apple Silicon; memory works on any macOS. The agent serves only these numbers, to your
-LAN, and nothing else — read `agent/omlx-agent.py` (about 100 lines) to confirm.
+with an ONLINE/OFFLINE indicator. If a local model server is running on that host, the
+agent also reports the **currently loaded model** (auto-detected from Ollama, LM Studio,
+or any OpenAI-compatible `/v1/models` endpoint such as llama.cpp / `mlx_lm.server`). The
+agent is polled every few seconds. GPU% requires Apple Silicon; memory works on any macOS.
+The agent serves only these numbers, to your LAN, and nothing else — read
+`agent/omlx-agent.py` (about 130 lines) to confirm.
 
 ## For AI coding assistants (porting this to another Mac)
 

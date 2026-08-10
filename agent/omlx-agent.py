@@ -18,6 +18,7 @@ import json
 import re
 import socket
 import subprocess
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
@@ -35,8 +36,11 @@ def gpu_percent():
     return max(vals) if vals else None
 
 
+GIB = 1024 ** 3  # macOS/Activity Monitor reports memory in GiB (labelled "GB")
+
+
 def memory():
-    """(used_gb, total_gb, percent) — 'used' ≈ active + wired + compressed."""
+    """(used_gib, total_gib, percent) — 'used' ≈ active + wired + compressed."""
     try:
         total = int(subprocess.run(["sysctl", "-n", "hw.memsize"],
                                    capture_output=True, text=True, timeout=4).stdout.strip())
@@ -55,7 +59,39 @@ def memory():
     used_pages = pages("Pages active") + pages("Pages wired down") + pages("Pages occupied by compressor")
     used = used_pages * page
     pct = round(used / total * 100, 1) if total else None
-    return round(used / 1e9, 2), round(total / 1e9, 2), pct
+    return round(used / GIB, 2), round(total / GIB, 2), pct
+
+
+def _get_json(url, timeout=1.2):
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as r:
+            return json.load(r)
+    except Exception:
+        return None
+
+
+def running_model():
+    """Best-effort name of the model currently loaded by a local server. None if unknown."""
+    # Ollama — loaded/running models
+    d = _get_json("http://localhost:11434/api/ps")
+    if d and d.get("models"):
+        return d["models"][0].get("name") or d["models"][0].get("model")
+    # OpenAI-compatible servers: LM Studio (1234), llama.cpp / mlx_lm.server (8080/8000)
+    for port in (1234, 8080, 8000):
+        d = _get_json(f"http://localhost:{port}/v1/models")
+        if d and d.get("data"):
+            return d["data"][0].get("id")
+    # Fallback: inspect process args for a --model / -m argument
+    try:
+        ps = subprocess.run(["ps", "-axo", "command"], capture_output=True, text=True, timeout=4).stdout
+        for line in ps.splitlines():
+            if any(k in line for k in ("mlx_lm", "llama-server", "llama_cpp", "vllm", "ollama runner")):
+                m = re.search(r"(?:--model|-m|--model-path)[= ]+(\S+)", line)
+                if m:
+                    return m.group(1).rstrip("/").split("/")[-1]
+    except Exception:
+        pass
+    return None
 
 
 def collect():
@@ -66,6 +102,7 @@ def collect():
         "mem_used_gb": used,
         "mem_total_gb": total,
         "mem_pct": pct,
+        "model": running_model(),
     }
 
 

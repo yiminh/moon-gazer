@@ -345,6 +345,16 @@ struct OMLXColumn: View {
                     .padding(.top, 10)
             }
 
+            if let model = snapshot.model, snapshot.fetchedAt != nil {
+                Spacer().frame(height: 20)
+                Rectangle().fill(Theme.divider).frame(height: 1)
+                Spacer().frame(height: 14)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("MODEL").font(Theme.mono(11, .semibold)).tracking(2).foregroundColor(Theme.textTertiary)
+                    Text(model).font(Theme.mono(14, .medium)).foregroundColor(accent).lineLimit(2)
+                }
+            }
+
             Spacer(minLength: 8)
             footer
         }
