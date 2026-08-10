@@ -147,6 +147,7 @@ enum Main {
         Task {
             let claude = await ClaudeService().fetch()
             let codex = await CodexService().fetch()
+            let omlx = await OMLXService().fetch()
             let sessions = SessionMonitor().scan()
 
             func describe(_ s: ProviderSnapshot) {
@@ -161,6 +162,14 @@ enum Main {
             }
             describe(claude)
             describe(codex)
+            print("== OMLX ==")
+            if !omlx.configured {
+                print("  not configured (set MOONGAZER_OMLX_URL or ~/.config/moongazer/config.json)")
+            } else if let error = omlx.error, omlx.fetchedAt == nil {
+                print("  error: \(error)")
+            } else {
+                print("  host: \(omlx.host ?? "-")  GPU: \(omlx.gpuPercent.map { "\(Int($0))%" } ?? "-")  MEM: \(omlx.memPercent.map { "\(Int($0))%" } ?? "-") (\(omlx.memUsedGB ?? 0)/\(omlx.memTotalGB ?? 0) GB)")
+            }
             print("== TASKS ==")
             print("  claude: \(sessions.claude.map { "\($0.name)[\($0.state)]" }.joined(separator: ", "))")
             print("  codex:  \(sessions.codex.map { "\($0.name)[\($0.state)]" }.joined(separator: ", "))")

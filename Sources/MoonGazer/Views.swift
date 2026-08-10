@@ -9,6 +9,7 @@ enum Theme {
     static let textTertiary = Color.white.opacity(0.34)
     static let claudeAccent = Color(red: 0.85, green: 0.47, blue: 0.34)
     static let codexAccent = Color(red: 0.06, green: 0.64, blue: 0.50)
+    static let omlxAccent = Color(red: 0.48, green: 0.55, blue: 0.98)
     static let amber = Color(red: 0.95, green: 0.75, blue: 0.25)
     static let red = Color(red: 0.94, green: 0.35, blue: 0.30)
     static let green = Color(red: 0.30, green: 0.78, blue: 0.45)
@@ -46,13 +47,19 @@ struct DashboardView: View {
         HStack(spacing: 0) {
             ProviderColumn(snapshot: store.claude, tasks: store.claudeTasks,
                            accent: Theme.claudeAccent, now: store.now, showPace: store.showPace)
-            Rectangle().fill(Theme.divider).frame(width: 1)
+            divider
             ProviderColumn(snapshot: store.codex, tasks: store.codexTasks,
                            accent: Theme.codexAccent, now: store.now, showPace: store.showPace)
+            if store.omlxEnabled {
+                divider
+                OMLXColumn(snapshot: store.omlx, accent: Theme.omlxAccent, now: store.now)
+            }
         }
         .frame(width: 960, height: 540)
         .background(Theme.background)
     }
+
+    private var divider: some View { Rectangle().fill(Theme.divider).frame(width: 1) }
 }
 
 struct ProviderColumn: View {
@@ -304,6 +311,134 @@ struct ProgressBar: View {
             }
         }
         .frame(height: height)
+    }
+}
+
+/// Third pane: GPU / memory of a remote machine served by omlx-agent.
+struct OMLXColumn: View {
+    let snapshot: OMLXSnapshot
+    let accent: Color
+    let now: Date
+
+    private var online: Bool {
+        snapshot.fetchedAt != nil && (snapshot.error == nil || now.timeIntervalSince(snapshot.fetchedAt!) < 30)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            header
+            Spacer().frame(height: 20)
+
+            if let gpu = snapshot.gpuPercent {
+                gpuHero(gpu)
+                Spacer().frame(height: 18)
+                if let mem = snapshot.memPercent { memoryRow(mem) }
+            } else if snapshot.fetchedAt == nil {
+                offlineState
+            } else {
+                // Reachable but GPU unavailable (e.g. non-Apple-Silicon) — still show MEM.
+                if let mem = snapshot.memPercent {
+                    memoryRow(mem, big: true)
+                }
+                Text("GPU% unavailable on this host")
+                    .font(Theme.mono(12)).foregroundColor(Theme.textTertiary)
+                    .padding(.top, 10)
+            }
+
+            Spacer(minLength: 8)
+            footer
+        }
+        .padding(.horizontal, 30)
+        .padding(.vertical, 26)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 11) {
+                Text("OMLX").font(Theme.mono(18, .semibold)).tracking(4).foregroundColor(accent)
+                Spacer()
+                HStack(spacing: 6) {
+                    Circle().fill(online ? Theme.green : Theme.red).frame(width: 8, height: 8)
+                    Text(online ? "ONLINE" : "OFFLINE")
+                        .font(Theme.mono(12, .medium))
+                        .foregroundColor(online ? Theme.green : Theme.red)
+                }
+            }
+            Text(snapshot.host ?? "local model host")
+                .font(Theme.mono(12)).foregroundColor(Theme.textTertiary)
+        }
+    }
+
+    private func gpuHero(_ gpu: Double) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(alignment: .lastTextBaseline, spacing: 10) {
+                Text("\(Int(gpu.rounded()))")
+                    .font(Theme.mono(58, .light)).foregroundColor(Theme.textPrimary)
+                Text("%").font(Theme.mono(24, .light)).foregroundColor(Theme.textSecondary)
+                Spacer()
+                Text("GPU").font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
+            }
+            ProgressBar(percent: gpu, accent: accent, height: 9)
+        }
+    }
+
+    private func memoryRow(_ mem: Double, big: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: big ? 9 : 6) {
+            HStack(alignment: big ? .lastTextBaseline : .firstTextBaseline) {
+                if big {
+                    Text("\(Int(mem.rounded()))")
+                        .font(Theme.mono(58, .light)).foregroundColor(Theme.textPrimary)
+                    Text("%").font(Theme.mono(24, .light)).foregroundColor(Theme.textSecondary)
+                } else {
+                    Text("MEM").font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
+                }
+                Spacer()
+                if let used = snapshot.memUsedGB, let total = snapshot.memTotalGB {
+                    Text(String(format: "%.1f / %.0f GB", used, total))
+                        .font(Theme.mono(12)).foregroundColor(Theme.textTertiary)
+                }
+                if !big {
+                    Text("\(Int(mem.rounded()))%")
+                        .font(Theme.mono(15, .medium)).foregroundColor(Theme.textPrimary)
+                        .frame(minWidth: 46, alignment: .trailing)
+                } else {
+                    Text("MEM").font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
+                }
+            }
+            ProgressBar(percent: mem, accent: accent, height: big ? 9 : 6)
+        }
+    }
+
+    private var offlineState: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Spacer().frame(height: 30)
+            Text("--").font(Theme.mono(48, .light)).foregroundColor(Theme.textTertiary)
+            Text(snapshot.error ?? "connecting…")
+                .font(Theme.mono(13)).foregroundColor(Theme.amber)
+            Text("start omlx-agent on the host")
+                .font(Theme.mono(11)).foregroundColor(Theme.textTertiary)
+        }
+    }
+
+    private var footer: some View {
+        HStack(spacing: 8) {
+            if let fetchedAt = snapshot.fetchedAt {
+                let stale = now.timeIntervalSince(fetchedAt) > 30
+                Text("updated \(timeString(fetchedAt))\(stale ? " (stale)" : "")")
+                    .font(Theme.mono(11)).foregroundColor(stale ? Theme.amber : Theme.textTertiary)
+            }
+            if let error = snapshot.error, snapshot.fetchedAt != nil {
+                Text("⚠ \(error)").font(Theme.mono(11)).foregroundColor(Theme.amber).lineLimit(1)
+            }
+            Spacer()
+        }
+    }
+
+    private func timeString(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
     }
 }
 

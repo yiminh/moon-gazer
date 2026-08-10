@@ -11,8 +11,9 @@ Moon Gazer is for the people who keep an eye on the moon.
 
 ![Moon Gazer dashboard](docs/example.svg)
 
-*Example with placeholder data. Claude on the left, Codex on the right — quota %, reset
-countdowns, a time-pace marker, and live/finished task status.*
+*Example with placeholder data. Claude and Codex quota %, reset countdowns, a time-pace
+marker and live/finished task status — plus an optional third **OMLX** pane showing the
+GPU/memory of another machine on your LAN (e.g. one running a local model).*
 
 </div>
 
@@ -34,6 +35,10 @@ Two panes, one per provider. Each shows:
 - last-updated time, marked *stale* if a fetch has been failing.
 
 Built for an always-on secondary display: monospaced, dark, Apple-flavoured, 16:9.
+
+An **optional third pane, OMLX**, shows the **GPU and memory usage of another machine on
+your LAN** — handy when a second box is running a local model. It appears only when you
+configure it (see below); without it the app stays a clean two-pane Claude/Codex view.
 
 ## Zero-auth: it reuses sign-ins already on your Mac
 
@@ -133,6 +138,36 @@ scaling to “looks like 960×540”, drop Moon Gazer on it, and press the green
 full screen.
 
 *(Not affiliated with or sponsored by PeakDo or Amazon — just a hardware suggestion.)*
+
+## OMLX pane — watching a remote machine's GPU/MEM
+
+The third pane monitors another machine (e.g. one serving a local model) via a tiny,
+dependency-free agent you run on that machine. It reads GPU utilization from `ioreg`
+(Apple Silicon, no sudo) and memory from `vm_stat`, and serves them as JSON.
+
+**1. On the machine you want to watch**, copy and run the agent:
+
+```bash
+scp agent/omlx-agent.py you@<remote-host>:~/
+ssh you@<remote-host> 'python3 ~/omlx-agent.py --port 8082'
+```
+
+It prints `omlx-agent serving on http://0.0.0.0:8082/metrics`. (To keep it running after
+you log out, launch it under `tmux`/`nohup`, or wrap it in a `launchd` plist.)
+
+**2. On the machine running Moon Gazer**, point the app at it via a small config file:
+
+```bash
+mkdir -p ~/.config/moongazer
+echo '{"omlxUrl": "http://<remote-host>:8082/metrics"}' > ~/.config/moongazer/config.json
+```
+
+(Or set `MOONGAZER_OMLX_URL=http://<remote-host>:8082/metrics` in the launch environment.)
+
+Restart Moon Gazer and the OMLX pane appears: GPU% as the hero, memory as the second bar,
+with an ONLINE/OFFLINE indicator. The agent is polled every few seconds. GPU% requires
+Apple Silicon; memory works on any macOS. The agent serves only these numbers, to your
+LAN, and nothing else — read `agent/omlx-agent.py` (about 100 lines) to confirm.
 
 ## For AI coding assistants (porting this to another Mac)
 

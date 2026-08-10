@@ -1,76 +1,95 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" font-family="SF Mono, Menlo, monospace">
   <rect width="1200" height="675" fill="#0e0e12"/>
-  <line x1="600" y1="0" x2="600" y2="675" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <line x1="400" y1="0" x2="400" y2="675" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <line x1="800" y1="0" x2="800" y2="675" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
 
-  <!-- ================= CLAUDE (left) ================= -->
+  <!-- ================= CLAUDE ================= -->
   <g>
-    <text x="40" y="60" fill="#d97857" font-size="22" font-weight="600" letter-spacing="5">CLAUDE</text>
-    <rect x="150" y="44" width="52" height="21" rx="4" fill="none" stroke="#ffffff" stroke-opacity="0.10"/>
-    <text x="158" y="59" fill="#ffffff" fill-opacity="0.58" font-size="12" font-weight="600" letter-spacing="1">MAX</text>
-    <circle cx="474" cy="53" r="4.5" fill="#4dc772"/>
-    <text x="486" y="58" fill="#4dc772" font-size="14" font-weight="500">WORKING ×1</text>
-    <text x="40" y="86" fill="#ffffff" fill-opacity="0.34" font-size="14">gazer@example.com</text>
+    <text x="30" y="56" fill="#d97857" font-size="20" font-weight="600" letter-spacing="4">CLAUDE</text>
+    <rect x="128" y="41" width="46" height="20" rx="4" fill="none" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="135" y="55" fill="#ffffff" fill-opacity="0.58" font-size="11" font-weight="600">MAX</text>
+    <circle cx="300" cy="50" r="4" fill="#4dc772"/>
+    <text x="310" y="55" fill="#4dc772" font-size="12" font-weight="500">WORKING ×1</text>
+    <text x="30" y="80" fill="#ffffff" fill-opacity="0.34" font-size="12">gazer@example.com</text>
 
-    <!-- hero: Weekly 7d -->
-    <text x="40" y="168" fill="#ffffff" fill-opacity="0.92" font-size="72" font-weight="300">38</text>
-    <text x="128" y="168" fill="#ffffff" fill-opacity="0.58" font-size="30" font-weight="300">%</text>
-    <text x="560" y="150" text-anchor="end" fill="#ffffff" fill-opacity="0.58" font-size="16" font-weight="500">Weekly 7d</text>
-    <text x="560" y="170" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="13">resets in 3d 4h</text>
-    <rect x="40" y="188" width="520" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.07"/>
-    <rect x="40" y="188" width="198" height="9" rx="4.5" fill="#d97857"/>
-    <rect x="268" y="188" width="2" height="9" fill="#ffffff" fill-opacity="0.9"/>
-    <text x="40" y="222" fill="#4dc772" font-size="13" font-weight="500">▼ 6% under pace</text>
+    <text x="30" y="158" fill="#ffffff" fill-opacity="0.92" font-size="64" font-weight="300">44</text>
+    <text x="108" y="158" fill="#ffffff" fill-opacity="0.58" font-size="26" font-weight="300">%</text>
+    <text x="370" y="142" text-anchor="end" fill="#ffffff" fill-opacity="0.58" font-size="13" font-weight="500">Weekly 7d</text>
+    <text x="370" y="160" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="12">resets in 3d 4h</text>
+    <rect x="30" y="176" width="340" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.07"/>
+    <rect x="30" y="176" width="150" height="9" rx="4.5" fill="#d97857"/>
+    <rect x="199" y="176" width="2" height="9" fill="#ffffff" fill-opacity="0.9"/>
+    <text x="30" y="208" fill="#4dc772" font-size="12" font-weight="500">▼ 6% under pace</text>
 
-    <!-- secondary: Session 5h -->
-    <text x="40" y="270" fill="#ffffff" fill-opacity="0.58" font-size="14" font-weight="500">Session 5h</text>
-    <text x="500" y="270" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="13">resets in 2h 10m</text>
-    <text x="560" y="270" text-anchor="end" fill="#ffffff" fill-opacity="0.92" font-size="15" font-weight="500">47%</text>
-    <rect x="40" y="280" width="520" height="6" rx="3" fill="#ffffff" fill-opacity="0.07"/>
-    <rect x="40" y="280" width="244" height="6" rx="3" fill="#d97857"/>
-    <rect x="325" y="280" width="2" height="6" fill="#ffffff" fill-opacity="0.9"/>
-    <text x="40" y="306" fill="#4dc772" font-size="13" font-weight="500">▼ 8% under pace</text>
+    <text x="30" y="256" fill="#ffffff" fill-opacity="0.58" font-size="13" font-weight="500">Session 5h</text>
+    <text x="320" y="256" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="12">2h 10m</text>
+    <text x="370" y="256" text-anchor="end" fill="#ffffff" fill-opacity="0.92" font-size="14" font-weight="500">61%</text>
+    <rect x="30" y="266" width="340" height="6" rx="3" fill="#ffffff" fill-opacity="0.07"/>
+    <rect x="30" y="266" width="207" height="6" rx="3" fill="#d97857"/>
+    <rect x="260" y="266" width="2" height="6" fill="#ffffff" fill-opacity="0.9"/>
+    <text x="30" y="290" fill="#4dc772" font-size="12" font-weight="500">▼ 7% under pace</text>
 
-    <line x1="40" y1="345" x2="560" y2="345" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
-    <text x="40" y="378" fill="#ffffff" fill-opacity="0.34" font-size="12" font-weight="600" letter-spacing="2">TASKS</text>
-    <circle cx="45" cy="405" r="3.5" fill="#4dc772"/>
-    <text x="60" y="410" fill="#ffffff" fill-opacity="0.92" font-size="14" font-weight="500">my-web-app</text>
-    <text x="560" y="410" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="13">14m</text>
-    <text x="42" y="438" fill="#ffffff" fill-opacity="0.34" font-size="13" font-weight="700">✓</text>
-    <text x="60" y="438" fill="#ffffff" fill-opacity="0.58" font-size="14">api-server</text>
-    <text x="560" y="438" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="13">done 8m ago</text>
-
-    <text x="40" y="640" fill="#ffffff" fill-opacity="0.34" font-size="11">updated 14:32</text>
+    <line x1="30" y1="330" x2="370" y2="330" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="30" y="362" fill="#ffffff" fill-opacity="0.34" font-size="11" font-weight="600" letter-spacing="2">TASKS</text>
+    <circle cx="35" cy="388" r="3.3" fill="#4dc772"/>
+    <text x="48" y="393" fill="#ffffff" fill-opacity="0.92" font-size="13" font-weight="500">my-web-app</text>
+    <text x="370" y="393" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="12">14m</text>
+    <text x="32" y="419" fill="#ffffff" fill-opacity="0.34" font-size="12" font-weight="700">✓</text>
+    <text x="48" y="419" fill="#ffffff" fill-opacity="0.58" font-size="13">api-server</text>
+    <text x="370" y="419" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="12">done 8m ago</text>
+    <text x="30" y="640" fill="#ffffff" fill-opacity="0.34" font-size="11">updated 14:32</text>
   </g>
 
-  <!-- ================= CODEX (right) ================= -->
-  <g transform="translate(600,0)">
-    <text x="40" y="60" fill="#10a37f" font-size="22" font-weight="600" letter-spacing="5">CODEX</text>
-    <rect x="140" y="44" width="58" height="21" rx="4" fill="none" stroke="#ffffff" stroke-opacity="0.10"/>
-    <text x="148" y="59" fill="#ffffff" fill-opacity="0.58" font-size="12" font-weight="600" letter-spacing="1">PLUS</text>
-    <circle cx="486" cy="53" r="4.5" fill="none" stroke="#f2bf40" stroke-width="1.3"/>
-    <text x="498" y="58" fill="#f2bf40" font-size="14" font-weight="500">IDLE ×1</text>
-    <text x="40" y="86" fill="#ffffff" fill-opacity="0.34" font-size="14">gazer@example.com</text>
+  <!-- ================= CODEX ================= -->
+  <g transform="translate(400,0)">
+    <text x="30" y="56" fill="#10a37f" font-size="20" font-weight="600" letter-spacing="4">CODEX</text>
+    <rect x="118" y="41" width="50" height="20" rx="4" fill="none" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="125" y="55" fill="#ffffff" fill-opacity="0.58" font-size="11" font-weight="600">PLUS</text>
+    <circle cx="312" cy="50" r="4" fill="none" stroke="#f2bf40" stroke-width="1.2"/>
+    <text x="322" y="55" fill="#f2bf40" font-size="12" font-weight="500">IDLE ×1</text>
+    <text x="30" y="80" fill="#ffffff" fill-opacity="0.34" font-size="12">gazer@example.com</text>
 
-    <!-- hero: Weekly 7d -->
-    <text x="40" y="168" fill="#ffffff" fill-opacity="0.92" font-size="72" font-weight="300">61</text>
-    <text x="128" y="168" fill="#ffffff" fill-opacity="0.58" font-size="30" font-weight="300">%</text>
-    <text x="560" y="150" text-anchor="end" fill="#ffffff" fill-opacity="0.58" font-size="16" font-weight="500">Weekly 7d</text>
-    <text x="560" y="170" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="13">resets in 5d 3h</text>
-    <rect x="40" y="188" width="520" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.07"/>
-    <rect x="40" y="188" width="317" height="9" rx="4.5" fill="#10a37f"/>
-    <rect x="174" y="188" width="2" height="9" fill="#ffffff" fill-opacity="0.9"/>
-    <text x="40" y="222" fill="#f0594d" font-size="13" font-weight="500">▲ 35% over pace</text>
+    <text x="30" y="158" fill="#ffffff" fill-opacity="0.92" font-size="64" font-weight="300">69</text>
+    <text x="108" y="158" fill="#ffffff" fill-opacity="0.58" font-size="26" font-weight="300">%</text>
+    <text x="370" y="142" text-anchor="end" fill="#ffffff" fill-opacity="0.58" font-size="13" font-weight="500">Weekly 7d</text>
+    <text x="370" y="160" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="12">resets in 5d 3h</text>
+    <rect x="30" y="176" width="340" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.07"/>
+    <rect x="30" y="176" width="235" height="9" rx="4.5" fill="#10a37f"/>
+    <rect x="131" y="176" width="2" height="9" fill="#ffffff" fill-opacity="0.9"/>
+    <text x="30" y="208" fill="#f0594d" font-size="12" font-weight="500">▲ 39% over pace</text>
 
-    <!-- secondary: Session 5h placeholder (API not metering it now) -->
-    <text x="40" y="270" fill="#ffffff" fill-opacity="0.30" font-size="14" font-weight="500">Session 5h</text>
-    <text x="560" y="270" text-anchor="end" fill="#ffffff" fill-opacity="0.30" font-size="13">no active window</text>
+    <text x="30" y="256" fill="#ffffff" fill-opacity="0.30" font-size="13" font-weight="500">Session 5h</text>
+    <text x="370" y="256" text-anchor="end" fill="#ffffff" fill-opacity="0.30" font-size="12">no active window</text>
 
-    <line x1="40" y1="345" x2="560" y2="345" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
-    <text x="40" y="378" fill="#ffffff" fill-opacity="0.34" font-size="12" font-weight="600" letter-spacing="2">TASKS</text>
-    <circle cx="45" cy="405" r="3.5" fill="none" stroke="#f2bf40" stroke-width="1.3"/>
-    <text x="60" y="410" fill="#ffffff" fill-opacity="0.92" font-size="14" font-weight="500">data-pipeline</text>
-    <text x="560" y="410" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="13">3m</text>
+    <line x1="30" y1="330" x2="370" y2="330" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="30" y="362" fill="#ffffff" fill-opacity="0.34" font-size="11" font-weight="600" letter-spacing="2">TASKS</text>
+    <circle cx="35" cy="388" r="3.3" fill="none" stroke="#f2bf40" stroke-width="1.2"/>
+    <text x="48" y="393" fill="#ffffff" fill-opacity="0.92" font-size="13" font-weight="500">data-pipeline</text>
+    <text x="370" y="393" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="12">3m</text>
+    <text x="30" y="640" fill="#ffffff" fill-opacity="0.34" font-size="11">updated 14:32</text>
+  </g>
 
-    <text x="40" y="640" fill="#ffffff" fill-opacity="0.34" font-size="11">updated 14:32</text>
+  <!-- ================= OMLX ================= -->
+  <g transform="translate(800,0)">
+    <text x="30" y="56" fill="#7b8cff" font-size="20" font-weight="600" letter-spacing="4">OMLX</text>
+    <circle cx="300" cy="50" r="4" fill="#4dc772"/>
+    <text x="310" y="55" fill="#4dc772" font-size="12" font-weight="500">ONLINE</text>
+    <text x="30" y="80" fill="#ffffff" fill-opacity="0.34" font-size="12">model-host</text>
+
+    <text x="30" y="158" fill="#ffffff" fill-opacity="0.92" font-size="64" font-weight="300">46</text>
+    <text x="108" y="158" fill="#ffffff" fill-opacity="0.58" font-size="26" font-weight="300">%</text>
+    <text x="370" y="150" text-anchor="end" fill="#ffffff" fill-opacity="0.58" font-size="13" font-weight="500">GPU</text>
+    <rect x="30" y="176" width="340" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.07"/>
+    <rect x="30" y="176" width="156" height="9" rx="4.5" fill="#7b8cff"/>
+
+    <text x="30" y="256" fill="#ffffff" fill-opacity="0.58" font-size="13" font-weight="500">MEM</text>
+    <text x="320" y="256" text-anchor="end" fill="#ffffff" fill-opacity="0.34" font-size="12">19.5 / 26 GB</text>
+    <text x="370" y="256" text-anchor="end" fill="#ffffff" fill-opacity="0.92" font-size="14" font-weight="500">75%</text>
+    <rect x="30" y="266" width="340" height="6" rx="3" fill="#ffffff" fill-opacity="0.07"/>
+    <rect x="30" y="266" width="255" height="6" rx="3" fill="#f2bf40"/>
+
+    <line x1="30" y1="330" x2="370" y2="330" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="30" y="362" fill="#ffffff" fill-opacity="0.34" font-size="11">local model host · omlx-agent</text>
+    <text x="30" y="640" fill="#ffffff" fill-opacity="0.34" font-size="11">updated 14:32</text>
   </g>
 </svg>
