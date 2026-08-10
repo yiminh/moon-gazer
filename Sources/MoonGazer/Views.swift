@@ -1,5 +1,30 @@
 import SwiftUI
 
+/// How usage bars are coloured. User-selectable (View → Bar Colors).
+enum BarColorMode: String, CaseIterable {
+    case accentRedHigh   // provider accent, red only at ≥90% (default)
+    case ramp            // green <70, amber 70–90, red ≥90 — same on every pane
+    case accentOnly      // always the provider accent, never changes
+
+    var title: String {
+        switch self {
+        case .accentRedHigh: return "Accent, red at 90%+"
+        case .ramp: return "Green → Amber → Red"
+        case .accentOnly: return "Accent only (no change)"
+        }
+    }
+}
+
+private struct BarColorModeKey: EnvironmentKey {
+    static let defaultValue: BarColorMode = .accentRedHigh
+}
+extension EnvironmentValues {
+    var barColorMode: BarColorMode {
+        get { self[BarColorModeKey.self] }
+        set { self[BarColorModeKey.self] = newValue }
+    }
+}
+
 enum Theme {
     static let background = Color(red: 0.055, green: 0.055, blue: 0.07)
     static let panel = Color.white.opacity(0.03)
@@ -18,10 +43,17 @@ enum Theme {
         .system(size: size, weight: weight, design: .monospaced)
     }
 
-    static func barColor(_ percent: Double, accent: Color) -> Color {
-        if percent >= 90 { return red }
-        if percent >= 70 { return amber }
-        return accent
+    static func barColor(_ percent: Double, accent: Color, mode: BarColorMode) -> Color {
+        switch mode {
+        case .accentRedHigh:
+            return percent >= 90 ? red : accent
+        case .ramp:
+            if percent >= 90 { return red }
+            if percent >= 70 { return amber }
+            return green
+        case .accentOnly:
+            return accent
+        }
     }
 }
 
@@ -57,6 +89,7 @@ struct DashboardView: View {
         }
         .frame(width: 960, height: 540)
         .background(Theme.background)
+        .environment(\.barColorMode, store.barColorMode)
     }
 
     private var divider: some View { Rectangle().fill(Theme.divider).frame(width: 1) }
@@ -289,6 +322,7 @@ struct ResetText: View {
 /// of the window's time that has elapsed. Usage bar past the tick = burning
 /// faster than the clock; short of it = you have headroom.
 struct ProgressBar: View {
+    @Environment(\.barColorMode) private var barColorMode
     let percent: Double
     let accent: Color
     let height: CGFloat
@@ -299,7 +333,7 @@ struct ProgressBar: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(Color.white.opacity(0.07))
                 Capsule()
-                    .fill(Theme.barColor(percent, accent: accent))
+                    .fill(Theme.barColor(percent, accent: accent, mode: barColorMode))
                     .frame(width: max(height, geo.size.width * min(percent, 100) / 100))
                 if let pace {
                     // Flush with the bar height, centered on the elapsed-time fraction.
@@ -343,6 +377,11 @@ struct OMLXColumn: View {
                 Text("GPU% unavailable on this host")
                     .font(Theme.mono(12)).foregroundColor(Theme.textTertiary)
                     .padding(.top, 10)
+            }
+
+            if snapshot.fetchedAt != nil, (snapshot.ppTps != nil || snapshot.tgTps != nil) {
+                Spacer().frame(height: 18)
+                throughput
             }
 
             if let model = snapshot.model, snapshot.fetchedAt != nil {
@@ -417,6 +456,29 @@ struct OMLXColumn: View {
                 }
             }
             ProgressBar(percent: mem, accent: accent, height: big ? 9 : 6)
+        }
+    }
+
+    /// Prompt-processing (PP) and text-generation (TG) throughput, tok/s.
+    private var throughput: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            tpsRow("PP", snapshot.ppTps, hint: "prompt")
+            tpsRow("TG", snapshot.tgTps, hint: "generation")
+        }
+    }
+
+    private func tpsRow(_ label: String, _ value: Double?, hint: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(label).font(Theme.mono(13, .semibold)).foregroundColor(accent)
+            Text(hint).font(Theme.mono(11)).foregroundColor(Theme.textTertiary)
+            Spacer()
+            if let value, value > 0 {
+                Text("\(Int(value.rounded()))")
+                    .font(Theme.mono(15, .medium)).foregroundColor(Theme.textPrimary)
+                Text("tok/s").font(Theme.mono(11)).foregroundColor(Theme.textTertiary)
+            } else {
+                Text("idle").font(Theme.mono(12)).foregroundColor(Theme.textTertiary)
+            }
         }
     }
 

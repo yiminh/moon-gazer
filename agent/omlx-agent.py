@@ -18,8 +18,15 @@ import json
 import re
 import socket
 import subprocess
+import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+# Set in main(): the local oMLX server to read tok/s stats from, and an optional
+# admin API key (only needed if the server requires admin auth).
+OMLX_BASE = "http://localhost:8000"
+OMLX_KEY = ""
+_omlx_opener = None  # persists the admin session cookie across polls
 
 
 def gpu_percent():
@@ -94,8 +101,44 @@ def running_model():
     return None
 
 
+def omlx_stats():
+    """PP/TG tokens-per-second from a local oMLX server's /admin/api/stats.
+    Returns (pp_tps, tg_tps) session averages, or (None, None) if unavailable.
+    Reads without auth when the server allows it; logs in with OMLX_KEY otherwise."""
+    global _omlx_opener
+    if _omlx_opener is None:
+        _omlx_opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor())
+    path = "/admin/api/stats?scope=session"
+
+    def get():
+        with _omlx_opener.open(OMLX_BASE + path, timeout=1.5) as r:
+            return json.load(r)
+
+    try:
+        data = get()
+    except urllib.error.HTTPError as e:
+        if e.code == 401 and OMLX_KEY:
+            try:
+                body = json.dumps({"api_key": OMLX_KEY, "remember": True}).encode()
+                req = urllib.request.Request(OMLX_BASE + "/admin/api/login", data=body,
+                                             headers={"Content-Type": "application/json"})
+                _omlx_opener.open(req, timeout=2)
+                data = get()
+            except Exception:
+                return None, None
+        else:
+            return None, None
+    except Exception:
+        return None, None
+
+    def num(v):
+        return v if isinstance(v, (int, float)) else None
+    return num(data.get("avg_prefill_tps")), num(data.get("avg_generation_tps"))
+
+
 def collect():
     used, total, pct = memory()
+    pp, tg = omlx_stats()
     return {
         "host": socket.gethostname().split(".")[0],
         "gpu": gpu_percent(),
@@ -103,6 +146,8 @@ def collect():
         "mem_total_gb": total,
         "mem_pct": pct,
         "model": running_model(),
+        "pp_tps": pp,   # prompt processing (prefill) tokens/sec, session average
+        "tg_tps": tg,   # text generation tokens/sec, session average
     }
 
 
@@ -125,10 +170,17 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    global OMLX_BASE, OMLX_KEY
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8082)
     ap.add_argument("--host", default="0.0.0.0")
+    ap.add_argument("--omlx-base", default="http://localhost:8000",
+                    help="local oMLX server base URL for tok/s stats")
+    ap.add_argument("--omlx-key", default="",
+                    help="oMLX admin API key (only if the server requires admin auth)")
     args = ap.parse_args()
+    OMLX_BASE = args.omlx_base.rstrip("/")
+    OMLX_KEY = args.omlx_key
     print(f"omlx-agent serving on http://{args.host}:{args.port}/metrics")
     ThreadingHTTPServer((args.host, args.port), Handler).serve_forever()
 

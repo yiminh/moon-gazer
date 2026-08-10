@@ -30,6 +30,9 @@ Two panes, one per provider. Each shows:
 - **Pace marker** — a tick on each bar at the fraction of the window's *time* that has
   elapsed. Bar past the tick = burning faster than the clock (`▲ n% over pace`); short of
   it = you have headroom (`▼ n% under pace`). Toggle with **View → Show Pace Marker (⌘P)**.
+- **Bar colors** — pick under **View → Bar Colors**: *Accent, red at 90%+* (default — each
+  pane keeps its colour, turning red only when critically high), *Green → Amber → Red* (one
+  universal ramp by percentage), or *Accent only* (never changes).
 - **TASKS** — running (●), idle (○) and recently-finished (✓) Claude Code / Codex CLI
   sessions, with an overall status light in the header.
 - last-updated time, marked *stale* if a fetch has been failing.
@@ -173,7 +176,22 @@ agent also reports the **currently loaded model** (auto-detected from Ollama, LM
 or any OpenAI-compatible `/v1/models` endpoint such as llama.cpp / `mlx_lm.server`). The
 agent is polled every few seconds. GPU% requires Apple Silicon; memory works on any macOS.
 The agent serves only these numbers, to your LAN, and nothing else — read
-`agent/omlx-agent.py` (about 130 lines) to confirm.
+`agent/omlx-agent.py` (about 180 lines) to confirm.
+
+### Tokens/sec from oMLX
+
+If the host runs [oMLX](https://github.com/jundot/omlx) (an Apple-Silicon MLX inference
+server), the agent also reports **prompt-processing (PP)** and **text-generation (TG)**
+throughput in tok/s, read from oMLX's `/admin/api/stats`. By default the agent looks for
+oMLX at `http://localhost:8000`; override with `--omlx-base`. If your oMLX requires admin
+auth (i.e. it does *not* have "skip API key verification" enabled), pass its key:
+
+```bash
+python3 omlx-agent.py --port 8082 --omlx-base http://localhost:8000 --omlx-key <your-oMLX-key>
+```
+
+PP/TG are session averages; they read `idle` until requests have run. Other servers don't
+expose a live throughput endpoint, so tok/s is oMLX-only for now.
 
 ## For AI coding assistants (porting this to another Mac)
 

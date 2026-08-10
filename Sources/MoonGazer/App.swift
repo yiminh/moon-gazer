@@ -108,6 +108,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         paceItem.state = store.showPace ? .on : .off
         self.paceMenuItem = paceItem
         viewMenu.addItem(paceItem)
+
+        viewMenu.addItem(.separator())
+        let barColorsItem = NSMenuItem(title: "Bar Colors", action: nil, keyEquivalent: "")
+        let barColorsMenu = NSMenu(title: "Bar Colors")
+        for mode in BarColorMode.allCases {
+            let item = NSMenuItem(title: mode.title, action: #selector(setBarMode(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = mode.rawValue
+            item.state = store.barColorMode == mode ? .on : .off
+            barColorsMenu.addItem(item)
+            barColorItems.append(item)
+        }
+        barColorsItem.submenu = barColorsMenu
+        viewMenu.addItem(barColorsItem)
+
         viewItem.submenu = viewMenu
         mainMenu.addItem(viewItem)
 
@@ -115,10 +130,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private var paceMenuItem: NSMenuItem?
+    private var barColorItems: [NSMenuItem] = []
 
     @objc private func togglePace() {
         store.showPace.toggle()
         paceMenuItem?.state = store.showPace ? .on : .off
+    }
+
+    @objc private func setBarMode(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, let mode = BarColorMode(rawValue: raw) else { return }
+        store.barColorMode = mode
+        for item in barColorItems {
+            item.state = (item.representedObject as? String) == raw ? .on : .off
+        }
     }
 
     @objc private func refreshNow() { store.refreshUsage() }
@@ -169,6 +193,7 @@ enum Main {
                 print("  error: \(error)")
             } else {
                 print("  host: \(omlx.host ?? "-")  GPU: \(omlx.gpuPercent.map { "\(Int($0))%" } ?? "-")  MEM: \(omlx.memPercent.map { "\(Int($0))%" } ?? "-") (\(omlx.memUsedGB ?? 0)/\(omlx.memTotalGB ?? 0) GB)")
+                print("  model: \(omlx.model ?? "-")  PP: \(omlx.ppTps.map { "\(Int($0)) tok/s" } ?? "-")  TG: \(omlx.tgTps.map { "\(Int($0)) tok/s" } ?? "-")")
             }
             print("== TASKS ==")
             print("  claude: \(sessions.claude.map { "\($0.name)[\($0.state)]" }.joined(separator: ", "))")

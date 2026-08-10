@@ -8,6 +8,8 @@ struct OMLXSnapshot: Equatable {
     var memTotalGB: Double? = nil
     var memPercent: Double? = nil
     var model: String? = nil
+    var ppTps: Double? = nil   // prompt processing tokens/sec
+    var tgTps: Double? = nil   // text generation tokens/sec
     var fetchedAt: Date? = nil
     var error: String? = nil
 
@@ -94,6 +96,8 @@ final class OMLXService {
                 memTotalGB: dbl("mem_total_gb"),
                 memPercent: dbl("mem_pct"),
                 model: json["model"] as? String,
+                ppTps: dbl("pp_tps"),
+                tgTps: dbl("tg_tps"),
                 fetchedAt: Date(),
                 error: nil)
         } catch {
