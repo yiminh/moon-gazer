@@ -159,10 +159,13 @@ you log out, launch it under `tmux`/`nohup`, or wrap it in a `launchd` plist.)
 
 ```bash
 mkdir -p ~/.config/moongazer
-echo '{"omlxUrl": "http://<remote-host>:8082/metrics"}' > ~/.config/moongazer/config.json
+echo '{"omlxUrl": "http://<remote-host>:8082/metrics", "omlxLabel": "my-model-box"}' \
+  > ~/.config/moongazer/config.json
 ```
 
-(Or set `MOONGAZER_OMLX_URL=http://<remote-host>:8082/metrics` in the launch environment.)
+`omlxLabel` is optional — a friendly name shown in the pane header instead of the host's
+raw system hostname (which macOS can munge into something ugly). You can also set
+`MOONGAZER_OMLX_URL` / `MOONGAZER_OMLX_LABEL` in the launch environment instead of the file.
 
 Restart Moon Gazer and the OMLX pane appears: GPU% as the hero, memory as the second bar,
 with an ONLINE/OFFLINE indicator. If a local model server is running on that host, the
