@@ -7,7 +7,7 @@
 **A native macOS dashboard that watches your Claude and Codex usage — side by side, always on.**
 
 Automated AI assistants are like the moon: quietly with you through the night's work.
-Moon Gazer is for the people who keep an eye on the moon.
+Moon Gazer is the one who keep an eye on the moon.
 
 ![Moon Gazer dashboard](docs/example.svg)
 
