@@ -234,6 +234,12 @@ their authors.
 
 Built with [Claude Code](https://claude.com/claude-code) (Claude Opus).
 
+## Releases
+
+Version history is in [CHANGELOG.md](CHANGELOG.md); tagged builds are on the
+[Releases](https://github.com/yiminh/moon-gazer/releases) page. The project follows
+[Semantic Versioning](https://semver.org/).
+
 ## License
 
 [MIT](LICENSE) — do what you like, no warranty.

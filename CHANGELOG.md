@@ -1,0 +1,67 @@
+# Changelog
+
+All notable changes to Moon Gazer are documented here.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
+project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
+**MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
+features, PATCH for backward-compatible fixes.
+
+## [1.3.1] — 2026-08-10
+
+### Fixed
+- **OMLX pane now shows the model actually in use.** The agent read the model name from
+  the server's list of *available* models and always returned the first one, so the name
+  never changed when you switched models. It now reads the *currently loaded / serving*
+  model from the oMLX admin stats (`/admin/api/stats` → `active_models`), preferring the
+  model that is generating or has in-flight requests. Updates within one poll (~4s). (#1)
+
+## [1.3.0] — 2026-08-10
+
+### Added
+- **Settings window (⌘,).** A sidebar preferences window; everything persists to
+  `~/.config/moongazer/settings.json`.
+  - **Templates** — five looks to start from: Terminal, Material, Cupertino, Editorial,
+    Luxe. Each is a bundle of fonts, weights, accents, alert colours, and light/dark
+    surfaces; pick one, then override anything.
+  - **Typography** — separate typefaces for body text and the big numbers, each with a
+    bold toggle. Eight system fonts (SF Mono, Menlo, New York, Charter, SF Pro, SF Rounded,
+    Helvetica Neue, Avenir Next); nothing bundled.
+  - **Colors** — per-pane accent, warning/danger colours and their thresholds, three bar
+    modes (alert colours grey out in accent-only), 32 curated presets (~16 for dark, ~16
+    for light, brand colours included), plus hex entry and a native colour wheel.
+  - **Appearance** — Light, Dark, or Follow System (live).
+  - **Layout** — choose which columns show and their left-to-right order.
+
+### Changed
+- The theme is now a dynamic layer over the settings; the dashboard restyles live.
+
+## [1.2.0] — 2026-08-10
+
+### Added
+- **OMLX tokens/sec.** When the watched host runs [oMLX](https://github.com/jundot/omlx),
+  the agent reports prompt-processing (PP) and text-generation (TG) throughput, shown in
+  the OMLX pane.
+- **Selectable bar-colour behavior** and an **optional display label** for the OMLX host
+  (`omlxLabel`) to override a munged system hostname.
+
+## [1.1.0] — 2026-08-10
+
+### Added
+- **OMLX pane (optional third column).** Watches another machine on the LAN via a tiny,
+  dependency-free agent (`agent/omlx-agent.py`): GPU utilisation, memory, and the loaded
+  model, shown with an ONLINE/OFFLINE indicator. Hidden until configured.
+
+## [1.0.0] — 2026-08-09
+
+### Added
+- Initial release. A dual-pane macOS dashboard for **Claude** and **Codex** usage:
+  weekly/session quota, reset countdowns, a time-pace marker, and live/finished CLI task
+  status. Zero-auth (reuses existing CLI/Desktop sign-ins), real full-screen on a dedicated
+  display, and an app icon.
+
+[1.3.1]: https://github.com/yiminh/moon-gazer/releases/tag/v1.3.1
+[1.3.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.3.0
+[1.2.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.2.0
+[1.1.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.1.0
+[1.0.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.0.0
