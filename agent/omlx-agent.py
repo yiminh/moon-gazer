@@ -102,9 +102,9 @@ def running_model():
 
 
 def omlx_stats():
-    """PP/TG tokens-per-second from a local oMLX server's /admin/api/stats.
-    Returns (pp_tps, tg_tps) session averages, or (None, None) if unavailable.
-    Reads without auth when the server allows it; logs in with OMLX_KEY otherwise."""
+    """From a local oMLX server's /admin/api/stats: PP/TG tokens-per-second (session
+    averages) and the *currently active* model. Returns (pp_tps, tg_tps, model), any
+    of which may be None. Reads without auth when allowed; logs in with OMLX_KEY."""
     global _omlx_opener
     if _omlx_opener is None:
         _omlx_opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor())
@@ -125,27 +125,40 @@ def omlx_stats():
                 _omlx_opener.open(req, timeout=2)
                 data = get()
             except Exception:
-                return None, None
+                return None, None, None
         else:
-            return None, None
+            return None, None, None
     except Exception:
-        return None, None
+        return None, None, None
 
     def num(v):
         return v if isinstance(v, (int, float)) else None
-    return num(data.get("avg_prefill_tps")), num(data.get("avg_generation_tps"))
+
+    # Active model: oMLX only lists loaded / loading models here. Prefer the one
+    # actually serving (generating or with in-flight requests) so the name tracks
+    # what you're really using; fall back to the first loaded one.
+    model = None
+    models = (data.get("active_models") or {}).get("models") or []
+    if models:
+        def rank(m):
+            busy = (m.get("active_requests") or 0) > 0 or (m.get("generating") or 0) > 0
+            return (0 if busy else 1 if m.get("loaded") else 2)
+        model = sorted(models, key=rank)[0].get("id")
+
+    return num(data.get("avg_prefill_tps")), num(data.get("avg_generation_tps")), model
 
 
 def collect():
     used, total, pct = memory()
-    pp, tg = omlx_stats()
+    pp, tg, omlx_model = omlx_stats()
     return {
         "host": socket.gethostname().split(".")[0],
         "gpu": gpu_percent(),
         "mem_used_gb": used,
         "mem_total_gb": total,
         "mem_pct": pct,
-        "model": running_model(),
+        # Currently-active oMLX model preferred; else best-effort detection.
+        "model": omlx_model or running_model(),
         "pp_tps": pp,   # prompt processing (prefill) tokens/sec, session average
         "tg_tps": tg,   # text generation tokens/sec, session average
     }
