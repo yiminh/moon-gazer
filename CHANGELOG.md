@@ -7,6 +7,13 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 **MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
 features, PATCH for backward-compatible fixes.
 
+## [1.4.1] — 2026-08-13
+
+### Fixed
+- **iPhone widget crashed on load** with `Font.monospacedSystemFont is not a function` on
+  Scriptable versions without that API. The widget now uses `new Font("Menlo", size)` for
+  its monospaced look.
+
 ## [1.4.0] — 2026-08-13
 
 ### Added
@@ -70,6 +77,7 @@ features, PATCH for backward-compatible fixes.
   status. Zero-auth (reuses existing CLI/Desktop sign-ins), real full-screen on a dedicated
   display, and an app icon.
 
+[1.4.1]: https://github.com/yiminh/moon-gazer/releases/tag/v1.4.1
 [1.4.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.4.0
 [1.3.1]: https://github.com/yiminh/moon-gazer/releases/tag/v1.3.1
 [1.3.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.3.0

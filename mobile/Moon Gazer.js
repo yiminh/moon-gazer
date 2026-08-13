@@ -21,7 +21,7 @@ const white = (a) => new Color("#FFFFFF", a);
 const TXT1 = white(0.92), TXT2 = white(0.58), TXT3 = white(0.34);
 
 // ---- helpers ----------------------------------------------------------------
-function mono(size) { return Font.monospacedSystemFont(size); }
+function mono(size) { return new Font("Menlo", size); }
 
 function shortDur(secs) {
   secs = Math.max(0, Math.floor(secs));
