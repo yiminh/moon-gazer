@@ -72,7 +72,7 @@ function txtFit(stack, s, font, color, scale) {
 }
 function hero(col, pct) {
   const hr = col.addStack();
-  hr.centerAlignContent();
+  hr.bottomAlignContent();   // "%" sits on the number's baseline, not centred
   txt(hr, pct == null ? "--" : pct, mono(36), TXT1);
   txt(hr, "%", mono(16), TXT2);
 }
@@ -95,13 +95,19 @@ function renderMedium(w, data, now) {
   footer(w, data, now);
 }
 
+// name + plan inline (accent name, tertiary plan), status/dot pushed right.
+function mediumHead(col, name, accentHex, plan) {
+  const h = col.addStack(); h.centerAlignContent();
+  txt(h, name, mono(12), new Color(accentHex, 1));
+  if (plan) { txt(h, " ", mono(12), TXT3); txt(h, plan, mono(9), TXT3); }
+  h.addSpacer();
+  return h;
+}
+
 function mediumColumn(body, name, accentHex, d, barW, now) {
   const col = body.addStack();
   col.layoutVertically(); col.spacing = 0;
-  const h = col.addStack(); h.centerAlignContent();
-  txt(h, name, mono(12), new Color(accentHex, 1));
-  h.addSpacer();
-  if (d && d.plan) txt(h, d.plan, mono(9), TXT3);
+  mediumHead(col, name, accentHex, d && d.plan ? d.plan : null);
   col.addSpacer(8);
 
   const weekly = d && d.windows && d.windows[0];
@@ -110,19 +116,16 @@ function mediumColumn(body, name, accentHex, d, barW, now) {
   col.addSpacer(5);
   addBar(col, barW, 7, weekly ? weekly.pct : 0, accentHex, elapsedFrac(weekly, now));
   col.addSpacer(6);
-  if (weekly && weekly.resetsAt) txtFit(col, "resets in " + shortDur(weekly.resetsAt - now), mono(SEC), TXT2, 0.6);
+  if (weekly && weekly.resetsAt) txtFit(col, shortDur(weekly.resetsAt - now), mono(SEC), TXT2, 0.6);
 }
 
 function mediumOMLX(body, o, barW) {
   const col = body.addStack();
   col.layoutVertically(); col.spacing = 0;
-  const h = col.addStack(); h.centerAlignContent();
-  txt(h, "OMLX", mono(12), new Color(C.omlx, 1));
-  h.addSpacer();
+  const h = mediumHead(col, "OMLX", C.omlx, null);   // no MLX; dot on the right
   const online = o ? !!o.online : false;
-  const dot = h.addText(online ? "● " : "○ ");
+  const dot = h.addText(online ? "●" : "○");
   dot.font = mono(9); dot.textColor = new Color(online ? C.green : C.danger, 1);
-  txt(h, "MLX", mono(9), TXT3);
   col.addSpacer(8);
 
   if (!o || !o.configured) { txt(col, "off", mono(20), TXT3); return; }
@@ -131,13 +134,14 @@ function mediumOMLX(body, o, barW) {
   col.addSpacer(5);
   addBar(col, barW, 7, o.gpu == null ? 0 : o.gpu, C.omlx, null);
   col.addSpacer(6);
-  // MEM% | PP | TG — spread left / center / right
-  const r = col.addStack(); r.centerAlignContent();
-  txt(r, o.memPct == null ? "--" : o.memPct + "%", mono(SEC), TXT1);
+  // MEM% · PP · TG — left-aligned, middle-dot separated
+  const parts = [];
+  if (o.memPct != null) parts.push(o.memPct + "%");
+  if (o.ppTps != null) parts.push("" + o.ppTps);
+  if (o.tgTps != null) parts.push("" + o.tgTps);
+  const r = col.addStack();
+  txt(r, parts.join(" · "), mono(SEC), TXT2);
   r.addSpacer();
-  if (o.ppTps != null) txt(r, "" + o.ppTps, mono(SEC), TXT2);
-  r.addSpacer();
-  if (o.tgTps != null) txt(r, "" + o.tgTps, mono(SEC), TXT1);
 }
 
 function memColor(p) { return p >= 90 ? C.danger : (p >= 70 ? C.warn : C.omlx); }
@@ -167,67 +171,65 @@ function solidLine(wd, ht, color) {
   ctx.setFillColor(color); ctx.fillRect(new Rect(0, 0, wd, ht)); return ctx.getImage();
 }
 
-// A band: left = name + big % + plan; right = labelled bars, % right-aligned.
+// Left block: "NAME plan" (or NAME + online dot) on one line, big % under it.
+function bandLeft(row, name, accentHex, plan, pct, online) {
+  const left = row.addStack();
+  left.layoutVertically(); left.spacing = 3;
+  left.size = new Size(104, 0);
+  const nameRow = left.addStack(); nameRow.centerAlignContent();
+  txt(nameRow, name, mono(13), new Color(accentHex, 1));
+  if (plan) { txt(nameRow, " ", mono(13), TXT3); txt(nameRow, plan, mono(9), TXT3); }
+  if (online != null) {
+    nameRow.addSpacer(5);
+    const dot = nameRow.addText(online ? "●" : "○");
+    dot.font = mono(9); dot.textColor = new Color(online ? C.green : C.danger, 1);
+  }
+  const hr = left.addStack(); hr.bottomAlignContent();
+  txt(hr, pct == null ? "--" : pct, mono(40), TXT1);
+  txt(hr, "%", mono(17), TXT2);
+}
+
 function band(w, name, accentHex, d, now) {
   const row = w.addStack();
   row.centerAlignContent();
-
-  const left = row.addStack();
-  left.layoutVertically(); left.spacing = 1;
-  left.size = new Size(96, 0);
-  txt(left, name, mono(13), new Color(accentHex, 1));
   const weekly = d && d.windows && d.windows[0];
   const session = d && d.windows && d.windows[1];
-  const hr = left.addStack(); hr.centerAlignContent();
-  txt(hr, weekly ? weekly.pct : "--", mono(40), TXT1);
-  txt(hr, "%", mono(17), TXT2);
-  if (d && d.plan) txt(left, d.plan, mono(10), TXT3);
-
+  bandLeft(row, name, accentHex, d && d.plan ? d.plan : null, weekly ? weekly.pct : null, null);
   row.addSpacer(14);
   const right = row.addStack();
-  right.layoutVertically(); right.spacing = 8;
+  right.layoutVertically(); right.spacing = 13;   // gap BETWEEN metric groups
   const barW = 196;
   if (weekly) bandBar(right, "Weekly", weekly, accentHex, barW, now);
   if (session) bandBar(right, "Session", session, accentHex, barW, now);
   else txt(right, "Session:  idle", mono(10), TXT3);
 }
 
-// "Label:"  [reset/note]        NN%   — the % is always last, same size everywhere.
-function bandBar(stack, label, win, accentHex, barW, now) {
-  bandRow(stack, label, win.resetsAt ? shortDur(win.resetsAt - now) : "", win.pct,
+// Each metric is a self-contained group (label row + bar) with a tight internal
+// gap; the parent's spacing (13) separates the groups.
+function bandBar(right, label, win, accentHex, barW, now) {
+  bandRow(right, label, win.resetsAt ? shortDur(win.resetsAt - now) : "", win.pct,
           accentHex, barW, elapsedFrac(win, now));
 }
-function bandRow(stack, label, note, pct, colorHex, barW, frac) {
-  const top = stack.addStack();
-  top.centerAlignContent();
+function bandRow(right, label, note, pct, colorHex, barW, frac) {
+  const g = right.addStack();
+  g.layoutVertically(); g.spacing = 4;             // tight label → its own bar
+  const top = g.addStack(); top.centerAlignContent();
   txt(top, label + ":", mono(11), TXT2);
   top.addSpacer();
   if (note) txt(top, note, mono(10), TXT3);
   top.addSpacer(8);
   txt(top, pct == null ? "--" : pct + "%", mono(12), TXT1);
-  stack.addSpacer(3);
-  addBar(stack, barW, 6, pct == null ? 0 : pct, colorHex, frac == null ? null : frac);
+  addBar(g, barW, 6, pct == null ? 0 : pct, colorHex, frac == null ? null : frac);
 }
 
 function bandOMLX(w, o) {
   const row = w.addStack();
   row.centerAlignContent();
-
-  const left = row.addStack();
-  left.layoutVertically(); left.spacing = 1;
-  left.size = new Size(96, 0);
-  const head = left.addStack(); head.centerAlignContent();
-  txt(head, "OMLX", mono(13), new Color(C.omlx, 1));
-  head.addSpacer(4);
   const online = o && o.online;
-  const dot = head.addText(online ? "●" : "○");
-  dot.font = mono(9); dot.textColor = new Color(online ? C.green : C.danger, 1);
-  txt(left, (online && o.gpu != null) ? o.gpu : "--", mono(40), TXT1);
-  txt(left, "MLX", mono(10), TXT3);
-
+  bandLeft(row, "OMLX", C.omlx, null, (online && o.gpu != null) ? o.gpu : null, online);
   row.addSpacer(14);
   const right = row.addStack();
-  right.layoutVertically(); right.spacing = 8;
+  right.layoutVertically(); right.spacing = 13;
   const barW = 196;
   if (!o || !o.configured) { txt(right, "not set up", mono(11), TXT3); return; }
   if (!online) { txt(right, "offline", mono(12), new Color(C.amber, 1)); return; }

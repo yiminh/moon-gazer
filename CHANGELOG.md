@@ -7,6 +7,16 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 **MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
 features, PATCH for backward-compatible fixes.
 
+## [1.5.2] — 2026-08-13
+
+### Changed
+- **More widget layout fixes.** The big number's "%" now sits on the baseline (both
+  sizes). Medium: the plan (Max/Plus) sits inline after the name; OMLX drops "MLX" and
+  puts the online dot on the right; the reset line shows just the duration; OMLX's second
+  line is `MEM% · PP · TG`, left-aligned with middle dots. Large: plan inline after the
+  name, OMLX regains its "%" and drops "MLX", and metric groups are re-spaced so each
+  label hugs its own bar with clear gaps between groups.
+
 ## [1.5.1] — 2026-08-13
 
 ### Changed
@@ -106,6 +116,7 @@ features, PATCH for backward-compatible fixes.
   status. Zero-auth (reuses existing CLI/Desktop sign-ins), real full-screen on a dedicated
   display, and an app icon.
 
+[1.5.2]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.2
 [1.5.1]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.1
 [1.5.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.0
 [1.4.2]: https://github.com/yiminh/moon-gazer/releases/tag/v1.4.2
