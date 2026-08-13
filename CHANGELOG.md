@@ -7,6 +7,16 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 **MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
 features, PATCH for backward-compatible fixes.
 
+## [1.5.3] — 2026-08-13
+
+### Changed
+- **Widget alignment pass.** The big-number "%" is lifted to the number's baseline (no
+  longer dropped below it). The status dot is drawn as a small circle placed one space
+  after "OMLX" and vertically centred. Medium: the reset time and OMLX's `MEM%·PP·TG`
+  line share one size, and the middle-dot separators lost their spaces so nothing clips.
+  Large: OMLX is more compact (tighter row spacing, smaller model text) so the Claude and
+  Codex bands get more room.
+
 ## [1.5.2] — 2026-08-13
 
 ### Changed
@@ -116,6 +126,7 @@ features, PATCH for backward-compatible fixes.
   status. Zero-auth (reuses existing CLI/Desktop sign-ins), real full-screen on a dedicated
   display, and an app icon.
 
+[1.5.3]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.3
 [1.5.2]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.2
 [1.5.1]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.1
 [1.5.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.0

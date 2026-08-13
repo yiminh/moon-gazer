@@ -65,18 +65,42 @@ function addBar(stack, w, h, pct, colorHex, frac) {
   return img;
 }
 
-function txtFit(stack, s, font, color, scale) {
-  const t = txt(stack, s, font, color);
-  t.minimumScaleFactor = scale;
-  return t;
-}
-function hero(col, pct) {
+const SEC = 11;            // secondary line size (reset time / OMLX numbers)
+const HERO_LIFT = 0.22;    // raises the "%" up to the big number's baseline
+
+// Big number with a "%" that sits on the number's baseline (not dropped below it).
+function heroNum(col, pct, numSize, pctSize) {
   const hr = col.addStack();
-  hr.bottomAlignContent();   // "%" sits on the number's baseline, not centred
-  txt(hr, pct == null ? "--" : pct, mono(36), TXT1);
-  txt(hr, "%", mono(16), TXT2);
+  hr.bottomAlignContent();
+  txt(hr, pct == null ? "--" : ("" + pct), mono(numSize), TXT1);
+  if (pct != null) {
+    const pw = hr.addStack();
+    pw.layoutVertically();
+    txt(pw, "%", mono(pctSize), TXT2);
+    pw.addSpacer(Math.round((numSize - pctSize) * HERO_LIFT));
+  }
 }
-const SEC = 11; // secondary text size shared by Claude/Codex reset and OMLX numbers
+
+// A status dot drawn as a small circle, so it centres cleanly next to text.
+function dotImg(online) {
+  const S = 3, d = 7 * S;
+  const ctx = new DrawContext();
+  ctx.size = new Size(d, d); ctx.opaque = false; ctx.respectScreenScale = false;
+  ctx.setFillColor(new Color(online ? C.green : C.danger, 1));
+  ctx.fillEllipse(new Rect(0, 0, d, d));
+  return ctx.getImage();
+}
+function statusDot(row, online) {
+  txt(row, " ", mono(12), TXT3);          // one space after the name
+  const img = row.addImage(dotImg(online));
+  img.imageSize = new Size(7, 7);
+}
+
+// A secondary info line — identical styling everywhere it's used.
+function infoLine(col, s) {
+  const t = txt(col, s, mono(SEC), TXT2);
+  t.minimumScaleFactor = 0.75;
+}
 
 // =============================================================================
 // MEDIUM — three columns; one big number + one bar + one text line each.
@@ -112,36 +136,35 @@ function mediumColumn(body, name, accentHex, d, barW, now) {
 
   const weekly = d && d.windows && d.windows[0];
   if (d && d.error && !weekly) { txt(col, "--", mono(36), TXT3); return; }
-  hero(col, weekly ? weekly.pct : null);
+  heroNum(col, weekly ? weekly.pct : null, 36, 16);
   col.addSpacer(5);
   addBar(col, barW, 7, weekly ? weekly.pct : 0, accentHex, elapsedFrac(weekly, now));
   col.addSpacer(6);
-  if (weekly && weekly.resetsAt) txtFit(col, shortDur(weekly.resetsAt - now), mono(SEC), TXT2, 0.6);
+  if (weekly && weekly.resetsAt) infoLine(col, shortDur(weekly.resetsAt - now));
 }
 
 function mediumOMLX(body, o, barW) {
   const col = body.addStack();
   col.layoutVertically(); col.spacing = 0;
-  const h = mediumHead(col, "OMLX", C.omlx, null);   // no MLX; dot on the right
-  const online = o ? !!o.online : false;
-  const dot = h.addText(online ? "●" : "○");
-  dot.font = mono(9); dot.textColor = new Color(online ? C.green : C.danger, 1);
+  const h = col.addStack(); h.centerAlignContent();
+  txt(h, "OMLX", mono(12), new Color(C.omlx, 1));   // dot right after name, centred
+  statusDot(h, o ? !!o.online : false);
+  h.addSpacer();
   col.addSpacer(8);
 
+  const online = o ? !!o.online : false;
   if (!o || !o.configured) { txt(col, "off", mono(20), TXT3); return; }
   if (!online) { txt(col, "--", mono(36), TXT3); col.addSpacer(4); txt(col, "offline", mono(SEC), new Color(C.amber, 1)); return; }
-  hero(col, o.gpu);
+  heroNum(col, o.gpu, 36, 16);
   col.addSpacer(5);
   addBar(col, barW, 7, o.gpu == null ? 0 : o.gpu, C.omlx, null);
   col.addSpacer(6);
-  // MEM% · PP · TG — left-aligned, middle-dot separated
+  // MEM%·PP·TG — left-aligned, middle-dot separated (no spaces, so it never clips)
   const parts = [];
   if (o.memPct != null) parts.push(o.memPct + "%");
   if (o.ppTps != null) parts.push("" + o.ppTps);
   if (o.tgTps != null) parts.push("" + o.tgTps);
-  const r = col.addStack();
-  txt(r, parts.join(" · "), mono(SEC), TXT2);
-  r.addSpacer();
+  infoLine(col, parts.join("·"));
 }
 
 function memColor(p) { return p >= 90 ? C.danger : (p >= 70 ? C.warn : C.omlx); }
@@ -179,14 +202,8 @@ function bandLeft(row, name, accentHex, plan, pct, online) {
   const nameRow = left.addStack(); nameRow.centerAlignContent();
   txt(nameRow, name, mono(13), new Color(accentHex, 1));
   if (plan) { txt(nameRow, " ", mono(13), TXT3); txt(nameRow, plan, mono(9), TXT3); }
-  if (online != null) {
-    nameRow.addSpacer(5);
-    const dot = nameRow.addText(online ? "●" : "○");
-    dot.font = mono(9); dot.textColor = new Color(online ? C.green : C.danger, 1);
-  }
-  const hr = left.addStack(); hr.bottomAlignContent();
-  txt(hr, pct == null ? "--" : pct, mono(40), TXT1);
-  txt(hr, "%", mono(17), TXT2);
+  if (online != null) statusDot(nameRow, online);
+  heroNum(left, pct, 40, 17);
 }
 
 function band(w, name, accentHex, d, now) {
@@ -197,7 +214,7 @@ function band(w, name, accentHex, d, now) {
   bandLeft(row, name, accentHex, d && d.plan ? d.plan : null, weekly ? weekly.pct : null, null);
   row.addSpacer(14);
   const right = row.addStack();
-  right.layoutVertically(); right.spacing = 13;   // gap BETWEEN metric groups
+  right.layoutVertically(); right.spacing = 15;   // gap BETWEEN metric groups
   const barW = 196;
   if (weekly) bandBar(right, "Weekly", weekly, accentHex, barW, now);
   if (session) bandBar(right, "Session", session, accentHex, barW, now);
@@ -229,7 +246,7 @@ function bandOMLX(w, o) {
   bandLeft(row, "OMLX", C.omlx, null, (online && o.gpu != null) ? o.gpu : null, online);
   row.addSpacer(14);
   const right = row.addStack();
-  right.layoutVertically(); right.spacing = 13;
+  right.layoutVertically(); right.spacing = 9;    // tighter than the top bands
   const barW = 196;
   if (!o || !o.configured) { txt(right, "not set up", mono(11), TXT3); return; }
   if (!online) { txt(right, "offline", mono(12), new Color(C.amber, 1)); return; }
@@ -240,8 +257,8 @@ function bandOMLX(w, o) {
   const memNote = (o.memUsedGb != null) ? (o.memUsedGb.toFixed(0) + "/" + Math.round(o.memTotalGb) + "G") : "";
   bandRow(right, "MEM", memNote, o.memPct, memColor(o.memPct), barW, null);
   if (o.model) {
-    const m = txt(right, o.model, mono(10), new Color(C.omlx, 1));
-    m.lineLimit = 2; m.minimumScaleFactor = 0.7;
+    const m = txt(right, o.model, mono(9), new Color(C.omlx, 1));
+    m.lineLimit = 2; m.minimumScaleFactor = 0.6;
   }
 }
 
