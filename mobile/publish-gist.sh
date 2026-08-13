@@ -14,8 +14,15 @@ BIN="$ROOT/Moon Gazer.app/Contents/MacOS/MoonGazer"
 [ -x "$BIN" ] || BIN="$ROOT/.build/release/MoonGazer"
 [ -x "$BIN" ] || { echo "MoonGazer binary not found — run ./build-app.sh" >&2; exit 1; }
 
+# Run --json with a watchdog: a stale binary (built before --json existed) launches
+# the GUI and never returns, so kill it rather than hang the launchd job forever.
 TMP="$(mktemp)"; trap 'rm -f "$TMP"' EXIT
-"$BIN" --json > "$TMP"
+"$BIN" --json > "$TMP" 2>/dev/null & jpid=$!
+w=0; while kill -0 "$jpid" 2>/dev/null; do sleep 1; w=$((w+1)); \
+  [ $w -ge 45 ] && { kill -9 "$jpid" 2>/dev/null; echo "snapshot timed out — rebuild: ./build-app.sh" >&2; exit 1; }; done
+wait "$jpid" 2>/dev/null || { echo "snapshot failed" >&2; exit 1; }
+/usr/bin/python3 -c "import json;json.load(open('$TMP'))" 2>/dev/null \
+  || { echo "snapshot not valid JSON — rebuild: ./build-app.sh" >&2; exit 1; }
 
 # PATCH the gist file with the fresh snapshot (only computed numbers — no tokens).
 /usr/bin/python3 - "$GID" "$TMP" <<'PY'

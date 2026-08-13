@@ -17,7 +17,14 @@ command -v gh >/dev/null || { echo "GitHub CLI required:  brew install gh && gh 
 
 echo "→ Generating the first snapshot…"
 WORK="$(mktemp -d)"; SNAP="$WORK/mg_snapshot.json"
-"$BIN" --json > "$SNAP"
+# Watchdog: a stale binary (built before --json existed) opens the GUI and never
+# returns. Kill it and tell the user to rebuild rather than hang here forever.
+"$BIN" --json > "$SNAP" 2>/dev/null & jpid=$!
+w=0; while kill -0 "$jpid" 2>/dev/null; do sleep 1; w=$((w+1)); \
+  [ $w -ge 45 ] && { kill -9 "$jpid" 2>/dev/null; echo "!! Snapshot timed out — your app is stale. Rebuild:  ./build-app.sh  then re-run this."; exit 1; }; done
+wait "$jpid" 2>/dev/null || { echo "!! Snapshot failed. Rebuild:  ./build-app.sh"; exit 1; }
+/usr/bin/python3 -c "import json;json.load(open('$SNAP'))" 2>/dev/null \
+  || { echo "!! Snapshot isn't valid JSON — your app is stale. Rebuild:  ./build-app.sh  then re-run this."; exit 1; }
 
 echo "→ Creating a secret gist…"
 URL="$(gh gist create "$SNAP" --desc 'Moon Gazer live snapshot (private widget feed)')"
