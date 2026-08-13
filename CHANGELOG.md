@@ -7,6 +7,17 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 **MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
 features, PATCH for backward-compatible fixes.
 
+## [1.5.0] — 2026-08-13
+
+### Changed
+- **Redesigned the iPhone widget** around each size instead of shrinking the desktop
+  layout. Progress bars are now drawn crisply (DrawContext) with a time-pace tick — the
+  old nested-stack bars collapsed to a dot at low percentages. Brighter accents (orange
+  #FF9F0A / green #30D158 / blue #0A84FF). **Medium**: bigger % numbers, two labelled
+  bars with ticks, no reset text or tasks; OMLX shows an "MLX" tag and GPU/MEM. **Large**:
+  three stacked full-width bands (Claude / Codex / OMLX) with weekly + session bars, reset
+  countdowns, and OMLX's model + PP/TG.
+
 ## [1.4.2] — 2026-08-13
 
 ### Fixed
@@ -85,6 +96,7 @@ features, PATCH for backward-compatible fixes.
   status. Zero-auth (reuses existing CLI/Desktop sign-ins), real full-screen on a dedicated
   display, and an app icon.
 
+[1.5.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.0
 [1.4.2]: https://github.com/yiminh/moon-gazer/releases/tag/v1.4.2
 [1.4.1]: https://github.com/yiminh/moon-gazer/releases/tag/v1.4.1
 [1.4.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.4.0
