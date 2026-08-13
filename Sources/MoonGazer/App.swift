@@ -173,6 +173,10 @@ enum Main {
             runProbe()
             return
         }
+        if CommandLine.arguments.contains("--json") {
+            runJSON()
+            return
+        }
         MainActor.assumeIsolated {
             let app = NSApplication.shared
             let delegate = AppDelegate()
@@ -214,6 +218,75 @@ enum Main {
             print("== TASKS ==")
             print("  claude: \(sessions.claude.map { "\($0.name)[\($0.state)]" }.joined(separator: ", "))")
             print("  codex:  \(sessions.codex.map { "\($0.name)[\($0.state)]" }.joined(separator: ", "))")
+            semaphore.signal()
+        }
+        semaphore.wait()
+    }
+
+    /// Emit a compact JSON snapshot for external consumers (e.g. the iPhone widget),
+    /// then exit. Contains only computed numbers — never tokens or credentials.
+    static func runJSON() {
+        let semaphore = DispatchSemaphore(value: 0)
+        Task {
+            let claude = await ClaudeService().fetch()
+            let codex = await CodexService().fetch()
+            let omlx = await OMLXService().fetch()
+            let sessions = SessionMonitor().scan()
+
+            func window(_ w: RateWindow?) -> [String: Any]? {
+                guard let w else { return nil }
+                return [
+                    "label": w.label,
+                    "pct": Int(w.usedPercent.rounded()),
+                    "resetsAt": w.resetsAt.map { Int($0.timeIntervalSince1970) } as Any? ?? NSNull(),
+                    "seconds": w.windowSeconds as Any? ?? NSNull(),
+                ]
+            }
+            func stateStr(_ s: TaskState) -> String {
+                switch s { case .working: return "working"; case .idle: return "idle"; case .finished: return "finished" }
+            }
+            func provider(_ s: ProviderSnapshot, tasks: [AgentTask]) -> [String: Any] {
+                let windows = ([window(s.primary), window(s.secondary)].compactMap { $0 })
+                    + s.extraWindows.compactMap { window($0) }
+                return [
+                    "plan": s.plan as Any? ?? NSNull(),
+                    "windows": windows,
+                    "extra": s.extra?.text as Any? ?? NSNull(),
+                    "counts": [
+                        "working": tasks.filter { $0.state == .working }.count,
+                        "idle": tasks.filter { $0.state == .idle }.count,
+                        "finished": tasks.filter { $0.state == .finished }.count,
+                    ],
+                    "tasks": tasks.prefix(5).map { ["name": $0.name, "state": stateStr($0.state), "detail": $0.detail] },
+                    "error": s.error as Any? ?? NSNull(),
+                ]
+            }
+
+            var omlxDict: [String: Any] = ["configured": omlx.configured]
+            if omlx.configured {
+                omlxDict["online"] = omlx.fetchedAt != nil && omlx.error == nil
+                omlxDict["host"] = omlx.host as Any? ?? NSNull()
+                omlxDict["gpu"] = omlx.gpuPercent.map { Int($0.rounded()) } as Any? ?? NSNull()
+                omlxDict["memPct"] = omlx.memPercent.map { Int($0.rounded()) } as Any? ?? NSNull()
+                omlxDict["memUsedGb"] = omlx.memUsedGB as Any? ?? NSNull()
+                omlxDict["memTotalGb"] = omlx.memTotalGB as Any? ?? NSNull()
+                omlxDict["model"] = omlx.model as Any? ?? NSNull()
+                omlxDict["ppTps"] = omlx.ppTps.map { Int($0.rounded()) } as Any? ?? NSNull()
+                omlxDict["tgTps"] = omlx.tgTps.map { Int($0.rounded()) } as Any? ?? NSNull()
+                omlxDict["error"] = omlx.error as Any? ?? NSNull()
+            }
+
+            let root: [String: Any] = [
+                "updated": Int(Date().timeIntervalSince1970),
+                "claude": provider(claude, tasks: sessions.claude),
+                "codex": provider(codex, tasks: sessions.codex),
+                "omlx": omlxDict,
+            ]
+
+            if let data = try? JSONSerialization.data(withJSONObject: root, options: [.sortedKeys]),
+               let str = String(data: data, encoding: .utf8) {
+                print(str)
+            }
             semaphore.signal()
         }
         semaphore.wait()

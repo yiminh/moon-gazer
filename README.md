@@ -145,6 +145,19 @@ Open **Settings** from the app menu (or ⌘,). Everything persists to
 - **Layout** — choose which columns show and their left-to-right order; hide any you don't
   need (OMLX appears once configured).
 
+## iPhone widget
+
+Watch the same data from your phone, anywhere — no VPN or port forwarding. Your Mac
+publishes a small JSON snapshot to a **secret GitHub Gist** every minute, and a
+[Scriptable](https://scriptable.app) widget reads it (Small / Medium / Large). Only
+computed numbers are published — no tokens leave the Mac. Setup and details in
+[`mobile/README.md`](mobile/README.md); the short version:
+
+```bash
+./build-app.sh          # if not built yet
+./mobile/setup-widget.sh
+```
+
 ## Recommended display
 
 Moon Gazer is happiest on a small, always-on secondary screen parked beside your main

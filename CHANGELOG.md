@@ -7,6 +7,16 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 **MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
 features, PATCH for backward-compatible fixes.
 
+## [1.4.0] — 2026-08-13
+
+### Added
+- **iPhone widget (Scriptable).** A `--json` snapshot mode plus a small pipeline
+  (`mobile/`): the Mac publishes a compact JSON snapshot to a secret GitHub Gist every
+  60s (launchd), and a Scriptable widget reads it on the phone — works anywhere, no VPN or
+  port forwarding. Small / Medium / Large layouts; medium and up keep reset countdowns,
+  session bars, pace, tasks, and OMLX GPU/MEM/model/tok-s. Only computed numbers are
+  published; no tokens ever leave the Mac.
+
 ## [1.3.1] — 2026-08-10
 
 ### Fixed
@@ -60,6 +70,7 @@ features, PATCH for backward-compatible fixes.
   status. Zero-auth (reuses existing CLI/Desktop sign-ins), real full-screen on a dedicated
   display, and an app icon.
 
+[1.4.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.4.0
 [1.3.1]: https://github.com/yiminh/moon-gazer/releases/tag/v1.3.1
 [1.3.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.3.0
 [1.2.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.2.0
