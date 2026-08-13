@@ -7,6 +7,16 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 **MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
 features, PATCH for backward-compatible fixes.
 
+## [1.5.1] — 2026-08-13
+
+### Changed
+- **Widget polish from real-device feedback.** Accents now match the app's configured
+  colours (coral / mint / aqua). Medium: Claude/Codex show a single weekly bar with the
+  reset time as text below (no 7d/5h tags, no session bar, no tasks); OMLX drops the
+  GPU/MEM labels and shows `MEM% · PP · TG` spread across one line. Large: bar labels get
+  a colon and every percentage is right-aligned at one size (Weekly/Session/GPU/MEM),
+  PP/TG shows as `844/61` aligned above MEM's `47/96G`, and the model name gets two lines.
+
 ## [1.5.0] — 2026-08-13
 
 ### Changed
@@ -96,6 +106,7 @@ features, PATCH for backward-compatible fixes.
   status. Zero-auth (reuses existing CLI/Desktop sign-ins), real full-screen on a dedicated
   display, and an app icon.
 
+[1.5.1]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.1
 [1.5.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.0
 [1.4.2]: https://github.com/yiminh/moon-gazer/releases/tag/v1.4.2
 [1.4.1]: https://github.com/yiminh/moon-gazer/releases/tag/v1.4.1
