@@ -7,6 +7,16 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 **MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
 features, PATCH for backward-compatible fixes.
 
+## [1.5.4] — 2026-08-13
+
+### Fixed
+- **Widget feed silently went stale (~19h).** The launchd publisher ran from a copy in
+  `~/Documents`, a macOS TCC-protected folder; after a reboot the background agent lost
+  permission to execute it (`Operation not permitted`, exit 126) and stopped updating the
+  gist. Setup now installs the binary and publisher into
+  `~/Library/Application Support/MoonGazer/` and points the launchd job there, so it keeps
+  running across reboots regardless of where the repo lives.
+
 ## [1.5.3] — 2026-08-13
 
 ### Changed
@@ -126,6 +136,7 @@ features, PATCH for backward-compatible fixes.
   status. Zero-auth (reuses existing CLI/Desktop sign-ins), real full-screen on a dedicated
   display, and an app icon.
 
+[1.5.4]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.4
 [1.5.3]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.3
 [1.5.2]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.2
 [1.5.1]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.1

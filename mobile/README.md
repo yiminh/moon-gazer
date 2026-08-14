@@ -50,6 +50,12 @@ tokens or credentials ever leave your Mac.**
   anytime with `gh gist delete <id>` and `launchctl unload ~/Library/LaunchAgents/com.moongazer.publisher.plist`.
 - **First run** may raise a Keychain prompt the first time the launchd job calls `gh`
   (it reads your GitHub token) — allow it.
+- **Where it runs:** setup installs the binary and publisher into
+  `~/Library/Application Support/MoonGazer/` and points the launchd job there. This avoids
+  macOS TCC: a background launchd agent can't execute anything inside `~/Documents`,
+  `~/Desktop`, or `~/Downloads` after a reboot (`Operation not permitted`), so the repo can
+  live in those folders while the running copies sit in Application Support. Re-run
+  `setup-widget.sh` after `./build-app.sh` to refresh the installed binary.
 - Logs: `~/Library/Logs/moongazer-publisher.log`.
 
 ## Files

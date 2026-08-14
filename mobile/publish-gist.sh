@@ -1,21 +1,18 @@
 #!/bin/bash
-# Moon Gazer — publish a fresh snapshot to the secret gist.
-# Run every minute by the launchd agent that setup-widget.sh installs.
+# Moon Gazer publisher — installed to and run from ~/Library/Application Support/MoonGazer
+# (NOT a TCC-protected folder like ~/Documents, so the launchd agent can execute it after
+# a reboot). setup-widget.sh copies this here as `publish.sh` alongside the binary.
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SUP="$HOME/Library/Application Support/MoonGazer"
 CONFIG="$HOME/.config/moongazer/publisher.json"
-[ -f "$CONFIG" ] || { echo "no publisher config — run mobile/setup-widget.sh first" >&2; exit 1; }
-
+[ -f "$CONFIG" ] || { echo "no publisher config — run setup-widget.sh first" >&2; exit 1; }
 GID="$(/usr/bin/python3 -c "import json;print(json.load(open('$CONFIG'))['gistId'])")"
+BIN="$SUP/MoonGazer"
+[ -x "$BIN" ] || { echo "no binary at $BIN — re-run setup-widget.sh" >&2; exit 1; }
 
-BIN="$ROOT/Moon Gazer.app/Contents/MacOS/MoonGazer"
-[ -x "$BIN" ] || BIN="$ROOT/.build/release/MoonGazer"
-[ -x "$BIN" ] || { echo "MoonGazer binary not found — run ./build-app.sh" >&2; exit 1; }
-
-# Run --json with a watchdog: a stale binary (built before --json existed) launches
-# the GUI and never returns, so kill it rather than hang the launchd job forever.
+# Watchdog: a stale binary (built before --json) opens the GUI and never returns.
 TMP="$(mktemp)"; trap 'rm -f "$TMP"' EXIT
 "$BIN" --json > "$TMP" 2>/dev/null & jpid=$!
 w=0; while kill -0 "$jpid" 2>/dev/null; do sleep 1; w=$((w+1)); \
@@ -24,7 +21,6 @@ wait "$jpid" 2>/dev/null || { echo "snapshot failed" >&2; exit 1; }
 /usr/bin/python3 -c "import json;json.load(open('$TMP'))" 2>/dev/null \
   || { echo "snapshot not valid JSON — rebuild: ./build-app.sh" >&2; exit 1; }
 
-# PATCH the gist file with the fresh snapshot (only computed numbers — no tokens).
 /usr/bin/python3 - "$GID" "$TMP" <<'PY'
 import json, sys, subprocess
 gid, tmp = sys.argv[1], sys.argv[2]

@@ -35,6 +35,15 @@ RAW="https://gist.githubusercontent.com/$LOGIN/$GID/raw/mg_snapshot.json"
 mkdir -p "$HOME/.config/moongazer"
 printf '{"gistId":"%s"}\n' "$GID" > "$HOME/.config/moongazer/publisher.json"
 
+# Install the binary + publisher into ~/Library/Application Support (NOT a TCC-protected
+# folder like ~/Documents), so the launchd agent can run them after a reboot.
+SUP="$HOME/Library/Application Support/MoonGazer"
+mkdir -p "$SUP"
+cp "$BIN" "$SUP/MoonGazer"
+cp "$ROOT/mobile/publish-gist.sh" "$SUP/publish.sh"
+chmod +x "$SUP/publish.sh"
+echo "→ Installed publisher to $SUP"
+
 # Wire the Scriptable widget's URL (its iCloud copy on this Mac).
 SCRIPT="$HOME/Library/Mobile Documents/iCloud~dk~simonbs~Scriptable/Documents/Moon Gazer.js"
 if [ -f "$SCRIPT" ]; then
@@ -54,7 +63,7 @@ cat > "$PLIST" <<EOF
 <plist version="1.0"><dict>
   <key>Label</key><string>com.moongazer.publisher</string>
   <key>ProgramArguments</key>
-    <array><string>/bin/bash</string><string>$ROOT/mobile/publish-gist.sh</string></array>
+    <array><string>/bin/bash</string><string>$SUP/publish.sh</string></array>
   <key>StartInterval</key><integer>60</integer>
   <key>RunAtLoad</key><true/>
   <key>StandardOutPath</key><string>$LOG</string>
