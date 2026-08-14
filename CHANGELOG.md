@@ -7,6 +7,15 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 **MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
 features, PATCH for backward-compatible fixes.
 
+## [1.5.6] — 2026-08-13
+
+### Changed
+- **Large-widget alignment.** Bands are top-aligned, so each provider's name and its first
+  bar label line up at the top (Codex no longer sags, OMLX's GPU no longer rides above the
+  name). Bar-row percentages reserve three digits, so `1%`, `11%` and `100%` share one
+  right-aligned mono column. Medium: OMLX's second line separates its three numbers with
+  two spaces (`53%  844  61`) to match the reset-time style.
+
 ## [1.5.5] — 2026-08-13
 
 ### Fixed
@@ -146,6 +155,7 @@ features, PATCH for backward-compatible fixes.
   status. Zero-auth (reuses existing CLI/Desktop sign-ins), real full-screen on a dedicated
   display, and an app icon.
 
+[1.5.6]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.6
 [1.5.5]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.5
 [1.5.4]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.4
 [1.5.3]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.3

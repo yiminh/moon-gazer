@@ -167,7 +167,7 @@ function mediumOMLX(body, o, barW) {
   if (o.memPct != null) parts.push(o.memPct + "%");
   if (o.ppTps != null) parts.push("" + o.ppTps);
   if (o.tgTps != null) parts.push("" + o.tgTps);
-  infoLine(col, parts.join("·"));
+  infoLine(col, parts.join("  "));
 }
 
 function memColor(p) { return p >= 90 ? C.danger : (p >= 70 ? C.warn : C.omlx); }
@@ -211,7 +211,7 @@ function bandLeft(row, name, accentHex, plan, pct, online) {
 
 function band(w, name, accentHex, d, now) {
   const row = w.addStack();
-  row.centerAlignContent();
+  row.topAlignContent();
   const weekly = d && d.windows && d.windows[0];
   const session = d && d.windows && d.windows[1];
   bandLeft(row, name, accentHex, d && d.plan ? d.plan : null, weekly ? weekly.pct : null, null);
@@ -238,13 +238,14 @@ function bandRow(right, label, note, pct, colorHex, barW, frac) {
   top.addSpacer();
   if (note) txt(top, note, mono(10), TXT3);
   top.addSpacer(8);
-  txt(top, pct == null ? "--" : pct + "%", mono(12), TXT1);
+  // Reserve 3 digits + "%" so 1% / 11% / 100% all line up in the mono column.
+  txt(top, pct == null ? "  --" : (String(pct).padStart(3) + "%"), mono(12), TXT1);
   addBar(g, barW, 6, pct == null ? 0 : pct, colorHex, frac == null ? null : frac);
 }
 
 function bandOMLX(w, o) {
   const row = w.addStack();
-  row.centerAlignContent();
+  row.topAlignContent();
   const online = o && o.online;
   bandLeft(row, "OMLX", C.omlx, null, (online && o.gpu != null) ? o.gpu : null, online);
   row.addSpacer(14);
