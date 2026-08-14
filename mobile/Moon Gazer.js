@@ -6,7 +6,10 @@
 // Reads the live snapshot your Mac publishes to a secret GitHub Gist.
 // Small / Medium / Large, each designed for its size (not a shrunk desktop view).
 
-const RAW_URL = "__RAW_URL__";
+// Fetch via the GitHub API, not the gist "raw" URL — the raw URL is served through a
+// CDN that can cache a stale copy for many hours. The API returns fresh content and a
+// secret gist is readable without a token. Setup wires the gist id below.
+const GIST_URL = "__GIST_URL__";
 
 // ---- palette (bright, matches the app's Cupertino accents) -------------------
 const BG = "#0E0E12";
@@ -310,13 +313,15 @@ async function main() {
 
   let data;
   try {
-    const req = new Request(RAW_URL + (RAW_URL.includes("?") ? "&" : "?") + "t=" + Date.now());
+    const req = new Request(GIST_URL + (GIST_URL.includes("?") ? "&" : "?") + "t=" + Date.now());
     req.timeoutInterval = 15;
-    data = await req.loadJSON();
+    const raw = await req.loadJSON();
+    // API response wraps the file; a direct snapshot is used as-is.
+    data = raw && raw.files ? JSON.parse(raw.files["mg_snapshot.json"].content) : raw;
   } catch (e) {
     w.setPadding(16, 16, 16, 16);
     txt(w, "Moon Gazer", mono(13), TXT1);
-    txt(w, RAW_URL.indexOf("__RAW") === 0 ? "run setup on the Mac" : "can't reach feed", mono(10), new Color(C.amber, 1));
+    txt(w, GIST_URL.indexOf("__GIST") === 0 ? "run setup on the Mac" : "can't reach feed", mono(10), new Color(C.amber, 1));
     return finish(w);
   }
 

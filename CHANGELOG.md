@@ -7,6 +7,16 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 **MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
 features, PATCH for backward-compatible fixes.
 
+## [1.5.5] — 2026-08-13
+
+### Fixed
+- **Widget could show hours-old data even while the feed was current.** It read the gist's
+  `raw` URL, which GitHub serves through a CDN that cached a stale copy for many hours. The
+  widget now fetches via the GitHub API (`api.github.com/gists/<id>`), which returns fresh
+  content (a secret gist is readable without a token). `setup-widget.sh` is now idempotent —
+  it reuses the existing gist instead of creating a new one each run (which had left the
+  widget pointing at an un-updated gist) and rewires the URL robustly.
+
 ## [1.5.4] — 2026-08-13
 
 ### Fixed
@@ -136,6 +146,7 @@ features, PATCH for backward-compatible fixes.
   status. Zero-auth (reuses existing CLI/Desktop sign-ins), real full-screen on a dedicated
   display, and an app icon.
 
+[1.5.5]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.5
 [1.5.4]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.4
 [1.5.3]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.3
 [1.5.2]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.2
