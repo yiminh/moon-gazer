@@ -105,6 +105,20 @@ function infoLine(col, s) {
   t.minimumScaleFactor = 0.75;
 }
 
+// Pace: usage% vs elapsed-time%. Over = burning faster than the clock (▲, amber/red),
+// under = headroom (▼, green), within ±8 = on pace (● grey). `short` for tight spots.
+function paceInfo(win, now, short) {
+  const f = elapsedFrac(win, now);
+  if (f == null) return null;
+  const d = win.pct - f * 100;
+  const n = Math.round(Math.abs(d));
+  if (d > 8) return { text: short ? ("▲" + n + "%") : ("▲ " + n + "% over pace"),
+                      color: new Color(d > 18 ? C.danger : C.amber, 1) };
+  if (d < -8) return { text: short ? ("▼" + n + "%") : ("▼ " + n + "% under pace"),
+                       color: new Color(C.green, 1) };
+  return { text: short ? "● on" : "● on pace", color: TXT3 };
+}
+
 // =============================================================================
 // MEDIUM — three columns; one big number + one bar + one text line each.
 // =============================================================================
@@ -143,7 +157,13 @@ function mediumColumn(body, name, accentHex, d, barW, now) {
   col.addSpacer(5);
   addBar(col, barW, 7, weekly ? weekly.pct : 0, accentHex, elapsedFrac(weekly, now));
   col.addSpacer(6);
-  if (weekly && weekly.resetsAt) infoLine(col, shortDur(weekly.resetsAt - now));
+  if (weekly && weekly.resetsAt) {
+    const r = col.addStack(); r.centerAlignContent();
+    const a = txt(r, shortDur(weekly.resetsAt - now), mono(SEC), TXT2); a.minimumScaleFactor = 0.75;
+    r.addSpacer();
+    const p = paceInfo(weekly, now, true);   // pace on the right
+    if (p) { const b = txt(r, p.text, mono(SEC), p.color); b.minimumScaleFactor = 0.75; }
+  }
 }
 
 function mediumOMLX(body, o, barW) {
@@ -219,18 +239,19 @@ function band(w, name, accentHex, d, now) {
   const right = row.addStack();
   right.layoutVertically(); right.spacing = 15;   // gap BETWEEN metric groups
   const barW = 196;
-  if (weekly) bandBar(right, "Weekly", weekly, accentHex, barW, now);
-  if (session) bandBar(right, "Session", session, accentHex, barW, now);
+  if (weekly) bandBar(right, "Weekly", weekly, accentHex, barW, now, true);   // weekly gets a pace line
+  if (session) bandBar(right, "Session", session, accentHex, barW, now, false);
   else txt(right, "Session:  idle", mono(10), TXT3);
 }
 
 // Each metric is a self-contained group (label row + bar) with a tight internal
 // gap; the parent's spacing (13) separates the groups.
-function bandBar(right, label, win, accentHex, barW, now) {
+function bandBar(right, label, win, accentHex, barW, now, withPace) {
+  const pace = withPace ? paceInfo(win, now, false) : null;
   bandRow(right, label, win.resetsAt ? shortDur(win.resetsAt - now) : "", win.pct,
-          accentHex, barW, elapsedFrac(win, now));
+          accentHex, barW, elapsedFrac(win, now), pace);
 }
-function bandRow(right, label, note, pct, colorHex, barW, frac) {
+function bandRow(right, label, note, pct, colorHex, barW, frac, paceCap) {
   const g = right.addStack();
   g.layoutVertically(); g.spacing = 4;             // tight label → its own bar
   const top = g.addStack(); top.centerAlignContent();
@@ -241,6 +262,7 @@ function bandRow(right, label, note, pct, colorHex, barW, frac) {
   // Reserve 3 digits + "%" so 1% / 11% / 100% all line up in the mono column.
   txt(top, pct == null ? "  --" : (String(pct).padStart(3) + "%"), mono(12), TXT1);
   addBar(g, barW, 6, pct == null ? 0 : pct, colorHex, frac == null ? null : frac);
+  if (paceCap) txt(g, paceCap.text, mono(10), paceCap.color);
 }
 
 function bandOMLX(w, o) {

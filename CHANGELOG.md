@@ -7,6 +7,15 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 **MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
 features, PATCH for backward-compatible fixes.
 
+## [1.6.0] — 2026-08-13
+
+### Added
+- **Pace indicator in the widget.** Shows whether weekly usage is ahead of or behind the
+  time elapsed in the window: `▲ n% over pace` (amber/red), `▼ n% under pace` (green), or
+  `● on pace` (within ±8%). Medium shows a short form (`▲n%` / `▼n%` / `● on`) on the
+  right of the reset-time line; large shows the full caption under the weekly bar (Mac-app
+  style), which also fills out the Claude and Codex bands.
+
 ## [1.5.6] — 2026-08-13
 
 ### Changed
@@ -155,6 +164,7 @@ features, PATCH for backward-compatible fixes.
   status. Zero-auth (reuses existing CLI/Desktop sign-ins), real full-screen on a dedicated
   display, and an app icon.
 
+[1.6.0]: https://github.com/yiminh/moon-gazer/releases/tag/v1.6.0
 [1.5.6]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.6
 [1.5.5]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.5
 [1.5.4]: https://github.com/yiminh/moon-gazer/releases/tag/v1.5.4
