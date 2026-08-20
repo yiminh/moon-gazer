@@ -1,0 +1,157 @@
+{% comment %}
+  Moon Gazer — TRMNL Private Plugin (full layout)
+  Data arrives as merge variables from the webhook push (push-trmnl.py). Reset
+  countdowns, pace, the elapsed-time tick, and the task line are pre-computed on
+  the Mac, so this markup only reads flat fields. TRMNL framework classes + a
+  small style block for the monospace face and left-aligned columns.
+
+  Every column uses the SAME row rhythm so the three line up:
+    title / hero% / primary-bar / sub-label / secondary-bar / tail
+  Claude+Codex: WEEKLY / pace / SESSION / task.   OMLX: GPU / PP·TG / MEM / model.
+{% endcomment %}
+
+<style>
+  /* @@FONTFACE@@ */
+  /* By default this falls back to the renderer's system mono (DejaVu Sans Mono on
+     TRMNL's cloud). To pin an exact face across cloud + device, run inject_font.py to
+     embed a mono (e.g. JetBrains Mono) as base64 @font-face at the @@FONTFACE@@ anchor
+     above. TRMNL bundles no mono of its own. */
+  .layout, .layout *, .title_bar, .title_bar * {
+    font-family: "JetBrains Mono", ui-monospace, monospace !important;
+  }
+  /* Left-align each column: the framework's .flex--col centers cross-axis, which
+     centers loose labels while the full-width bars sit left — mismatched. */
+  .mg-col { align-items: flex-start !important; }
+  .mg-tick { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #000; }
+  /* Fixed-height hero box, number bottom-aligned: guarantees the bar below every
+     column starts at the SAME y regardless of how wide 27 / 47 / 100 render. */
+  .mg-hero { height: 168px; display: flex; align-items: flex-end; width: 100%; overflow: hidden; }
+  .mg-pct { font-size: 0.5em; }  /* smaller % on the big number */
+</style>
+
+<div class="layout">
+{% if claude %}
+  <div class="grid grid--cols-3 h--full gap--large">
+
+    {% comment %} ---------- CLAUDE ---------- {% endcomment %}
+    <div class="flex flex--col mg-col gap--medium">
+      <div class="flex flex--row flex--center-y gap--small">
+        <span class="title title--large">{{ claude.name }}</span>
+        {% if claude.plan != "" %}<span class="label" style="border:1.5px solid;border-radius:5px;padding:1px 8px">{{ claude.plan }}</span>{% endif %}
+      </div>
+      <div class="mg-hero"><div class="value value--xxlarge value--tnums" data-value-fit="true" data-value-fit-max-height="168">{{ claude.weekly }}<span class="mg-pct">%</span></div></div>
+      <div class="progress-bar" style="width:100%">
+        <div class="content">
+          <span class="label">WEEKLY 7D</span>
+          <span class="value value--xsmall value--tnums">{{ claude.weekly_reset }}</span>
+        </div>
+        <div class="track">
+          <div class="fill" style="width: {{ claude.weekly }}%"></div>
+          {% if claude.weekly_elapsed %}<div class="mg-tick" style="left:{{ claude.weekly_elapsed }}%"></div>{% endif %}
+        </div>
+      </div>
+      {% if claude.pace != "" %}<span class="label">{{ claude.pace }}</span>{% endif %}
+      {% if claude.has_sec %}
+        <div class="progress-bar progress-bar--small" style="width:100%">
+          <div class="content">
+            <span class="label">{{ claude.sec_label }}</span>
+            <span class="value value--xsmall value--tnums">{{ claude.sec_pct }}%</span>
+          </div>
+          <div class="track">
+            <div class="fill" style="width: {{ claude.sec_pct }}%"></div>
+            {% if claude.sec_elapsed %}<div class="mg-tick" style="left:{{ claude.sec_elapsed }}%"></div>{% endif %}
+          </div>
+        </div>
+      {% else %}
+        <div class="progress-bar progress-bar--small" style="width:100%">
+          <div class="content">
+            <span class="label">5H</span>
+            <span class="value value--xsmall">IDLE</span>
+          </div>
+          <div class="track"><div class="fill" style="width: 0%"></div></div>
+        </div>
+      {% endif %}
+      {% if claude.task != "" %}<span class="label" data-clamp="1">{{ claude.task }}</span>{% endif %}
+    </div>
+
+    {% comment %} ---------- CODEX ---------- {% endcomment %}
+    <div class="flex flex--col mg-col gap--medium">
+      <div class="flex flex--row flex--center-y gap--small">
+        <span class="title title--large">{{ codex.name }}</span>
+        {% if codex.plan != "" %}<span class="label" style="border:1.5px solid;border-radius:5px;padding:1px 8px">{{ codex.plan }}</span>{% endif %}
+      </div>
+      <div class="mg-hero"><div class="value value--xxlarge value--tnums" data-value-fit="true" data-value-fit-max-height="168">{{ codex.weekly }}<span class="mg-pct">%</span></div></div>
+      <div class="progress-bar" style="width:100%">
+        <div class="content">
+          <span class="label">WEEKLY 7D</span>
+          <span class="value value--xsmall value--tnums">{{ codex.weekly_reset }}</span>
+        </div>
+        <div class="track">
+          <div class="fill" style="width: {{ codex.weekly }}%"></div>
+          {% if codex.weekly_elapsed %}<div class="mg-tick" style="left:{{ codex.weekly_elapsed }}%"></div>{% endif %}
+        </div>
+      </div>
+      {% if codex.pace != "" %}<span class="label">{{ codex.pace }}</span>{% endif %}
+      {% if codex.has_sec %}
+        <div class="progress-bar progress-bar--small" style="width:100%">
+          <div class="content">
+            <span class="label">{{ codex.sec_label }}</span>
+            <span class="value value--xsmall value--tnums">{{ codex.sec_pct }}%</span>
+          </div>
+          <div class="track">
+            <div class="fill" style="width: {{ codex.sec_pct }}%"></div>
+            {% if codex.sec_elapsed %}<div class="mg-tick" style="left:{{ codex.sec_elapsed }}%"></div>{% endif %}
+          </div>
+        </div>
+      {% else %}
+        <div class="progress-bar progress-bar--small" style="width:100%">
+          <div class="content">
+            <span class="label">5H</span>
+            <span class="value value--xsmall">IDLE</span>
+          </div>
+          <div class="track"><div class="fill" style="width: 0%"></div></div>
+        </div>
+      {% endif %}
+      {% if codex.task != "" %}<span class="label" data-clamp="1">{{ codex.task }}</span>{% endif %}
+    </div>
+
+    {% comment %} ---------- OMLX ---------- {% endcomment %}
+    <div class="flex flex--col mg-col gap--medium">
+      <div class="flex flex--row flex--center-y gap--small">
+        <span class="title title--large">OMLX</span>
+        <span class="label" style="border:1.5px solid;border-radius:5px;padding:1px 8px">{% if omlx.online %}ONLINE{% else %}OFFLINE{% endif %}</span>
+      </div>
+      {% if omlx.online %}
+        <div class="mg-hero"><div class="value value--xxlarge value--tnums" data-value-fit="true" data-value-fit-max-height="168">{{ omlx.gpu }}<span class="mg-pct">%</span></div></div>
+        <div class="progress-bar" style="width:100%">
+          <div class="content"><span class="label">M3 Ultra</span><span class="value value--xsmall">60-CORE GPU</span></div>
+          <div class="track"><div class="fill" style="width: {{ omlx.gpu }}%"></div></div>
+        </div>
+        {% if omlx.pp %}<span class="label value--tnums">PP {{ omlx.pp }} · TG {{ omlx.tg }}</span>{% endif %}
+        <div class="progress-bar progress-bar--small" style="width:100%">
+          <div class="content">
+            <span class="label">MEM</span>
+            <span class="value value--xsmall value--tnums">{{ omlx.mem_gb }} · {{ omlx.mem }}%</span>
+          </div>
+          <div class="track"><div class="fill" style="width: {{ omlx.mem }}%"></div></div>
+        </div>
+        {% if omlx.model != "" %}<span class="label" data-clamp="1">{{ omlx.model }}</span>{% endif %}
+      {% else %}
+        <span class="value value--xlarge">OFFLINE</span>
+      {% endif %}
+    </div>
+
+  </div>
+{% else %}
+  {% comment %} No data yet — plugin not configured / first push pending {% endcomment %}
+  <div class="flex flex--col flex--center-x flex--center-y gap--medium h--full">
+    <div class="value value--xlarge text--center">Moon Gazer</div>
+    <div class="description text--center">Waiting for the first push from your Mac.</div>
+  </div>
+{% endif %}
+</div>
+
+<div class="title_bar">
+  <span class="title md:title--large">Moon Gazer</span>
+  <span class="instance">{% if stale %}STALE · {% endif %}updated {{ updated_at }}</span>
+</div>

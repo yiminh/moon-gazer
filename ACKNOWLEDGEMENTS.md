@@ -21,4 +21,14 @@ Moon Gazer does not vendor or redistribute any of these projects' code; it is an
 independent implementation informed by their public techniques. If you maintain one of
 these and would like the credit adjusted or removed, please open an issue.
 
+## E-ink frontend (`trmnl/`)
+
+- [**TRMNL**](https://usetrmnl.com) — the e-ink platform and its open Liquid framework
+  (server-side 1-bit rendering, the `progress-bar` / `columns` / `border--*` component
+  classes the markup builds on). See [usetrmnl/byos_hanami](https://github.com/usetrmnl).
+- [**JetBrains Mono**](https://github.com/JetBrains/JetBrainsMono) and
+  [**IBM Plex Mono**](https://github.com/IBM/plex) — the optional embeddable monospace
+  faces (`inject_font.py`), both under the SIL Open Font License 1.1. The repo does not
+  bundle the font files; `inject_font.py` fetches them on demand.
+
 Built with [Claude Code](https://claude.com/claude-code) (Claude Opus).

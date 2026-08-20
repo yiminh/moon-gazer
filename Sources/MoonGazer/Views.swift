@@ -119,12 +119,6 @@ struct ProviderColumn: View {
     let now: Date
     let showPace: Bool
 
-    /// True when no window shorter than 6h is present (Codex idle → weekly only).
-    private var missingSession: Bool {
-        let all = [snapshot.primary, snapshot.secondary].compactMap { $0 } + snapshot.extraWindows
-        return !all.contains { $0.isSessionWindow }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
@@ -136,14 +130,16 @@ struct ProviderColumn: View {
             }
             // Session (5h) row directly under the weekly hero — or a placeholder when
             // the provider isn't currently reporting a session window (e.g. idle Codex).
-            if let secondary = snapshot.secondary {
-                SmallWindowView(window: secondary, accent: accent, now: now, showPace: showPace)
-            } else if snapshot.primary != nil, missingSession {
-                placeholderRow
-            }
-            ForEach(snapshot.extraWindows) { window in
-                Spacer().frame(height: 12)
-                SmallWindowView(window: window, accent: accent, now: now, showPace: showPace)
+            // Session (5h) then any model sub-quotas (e.g. "5.3-Spark"), rendered with
+            // one rhythm so the second row lines up across columns regardless of which
+            // kind it is. Session keeps its "resets in"; sub-quotas share the weekly
+            // reset so they drop it but keep the pace bar/caption.
+            let sessionRows = [snapshot.secondary].compactMap { $0 }
+            let secondaryRows = sessionRows + snapshot.extraWindows
+            ForEach(Array(secondaryRows.enumerated()), id: \.offset) { idx, window in
+                if idx > 0 { Spacer().frame(height: 12) }
+                SmallWindowView(window: window, accent: accent, now: now,
+                                showPace: showPace, showReset: idx < sessionRows.count)
             }
             if let extra = snapshot.extra {
                 Spacer().frame(height: 14)
@@ -194,22 +190,14 @@ struct ProviderColumn: View {
         let idle = tasks.filter { $0.state == .idle }.count
         let text: String
         let color: Color
-        if working > 0 { text = "WORKING ×\(working)"; color = Theme.green }
-        else if idle > 0 { text = "IDLE ×\(idle)"; color = Theme.amber }
+        if working > 0 { text = "WORKING"; color = Theme.green }
+        else if idle > 0 { text = "IDLE"; color = Theme.amber }
         else { text = "QUIET"; color = Theme.textTertiary }
         return HStack(spacing: 6) {
             Circle().fill(color).frame(width: 8, height: 8)
-            Text(text).font(Theme.mono(12, .medium)).foregroundColor(color)
+            Text(text).font(Theme.mono(12, .medium)).foregroundColor(color).lineLimit(1)
         }
-    }
-
-    private var placeholderRow: some View {
-        HStack {
-            Text("Session 5h").font(Theme.mono(14, .medium)).foregroundColor(Theme.textTertiary)
-            Spacer()
-            Text("no active window").font(Theme.mono(12)).foregroundColor(Theme.textTertiary)
-        }
-        .opacity(0.7)
+        .fixedSize()
     }
 
     private var taskSection: some View {
@@ -266,12 +254,14 @@ struct BigWindowView: View {
             HStack(alignment: .lastTextBaseline, spacing: 10) {
                 Text("\(Int(window.usedPercent.rounded()))")
                     .font(Theme.num(58)).foregroundColor(Theme.textPrimary)
+                    .lineLimit(1).fixedSize()
                 Text("%").font(Theme.num(24)).foregroundColor(Theme.textSecondary)
-                Spacer()
+                Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(window.label).font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
                     if let resets = window.resetsAt { ResetText(resets: resets, now: now) }
                 }
+                .fixedSize()
             }
             ProgressBar(percent: window.usedPercent, accent: accent, height: 9,
                         pace: showPace ? window.paceFraction(now: now) : nil)
@@ -287,13 +277,15 @@ struct SmallWindowView: View {
     let accent: Color
     let now: Date
     let showPace: Bool
+    var showReset: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
+            HStack(spacing: 8) {
                 Text(window.label).font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
-                Spacer()
-                if let resets = window.resetsAt { ResetText(resets: resets, now: now) }
+                    .lineLimit(1)
+                Spacer(minLength: 6)
+                if showReset, let resets = window.resetsAt { ResetText(resets: resets, now: now) }
                 Text("\(Int(window.usedPercent.rounded()))%")
                     .font(Theme.mono(15, .medium)).foregroundColor(Theme.textPrimary)
                     .frame(minWidth: 46, alignment: .trailing)
@@ -330,8 +322,9 @@ struct ResetText: View {
     let now: Date
     var body: some View {
         let remaining = resets.timeIntervalSince(now)
-        Text(remaining > 0 ? "resets in \(shortDuration(remaining))" : "resetting…")
+        Text(remaining > 0 ? "reset \(shortDuration(remaining))" : "resetting…")
             .font(Theme.mono(12)).foregroundColor(Theme.textTertiary)
+            .lineLimit(1).fixedSize()
     }
 }
 
@@ -396,18 +389,18 @@ struct OMLXColumn: View {
                     .padding(.top, 10)
             }
 
-            if snapshot.fetchedAt != nil, (snapshot.ppTps != nil || snapshot.tgTps != nil) {
-                Spacer().frame(height: 18)
-                throughput
-            }
-
             if let model = snapshot.model, snapshot.fetchedAt != nil {
                 Spacer().frame(height: 20)
                 Rectangle().fill(Theme.divider).frame(height: 1)
                 Spacer().frame(height: 14)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("MODEL").font(Theme.mono(11, .semibold)).tracking(2).foregroundColor(Theme.textTertiary)
-                    Text(model).font(Theme.mono(14, .medium)).foregroundColor(accent).lineLimit(2)
+                    // Leading accent dot mirrors the TASKS bullets so the model name
+                    // lines up with the task names (same 7 + 10 indent).
+                    HStack(spacing: 10) {
+                        Circle().fill(accent).frame(width: 7, height: 7)
+                        Text(model).font(Theme.mono(14, .medium)).foregroundColor(accent).lineLimit(2)
+                    }
                 }
             }
 
@@ -438,15 +431,47 @@ struct OMLXColumn: View {
 
     private func gpuHero(_ gpu: Double) -> some View {
         VStack(alignment: .leading, spacing: 9) {
+            // Big number + a two-line right block that mirrors the providers'
+            // "Weekly 7d" / "resets in …": here it's the device and GPU descriptor.
             HStack(alignment: .lastTextBaseline, spacing: 10) {
                 Text("\(Int(gpu.rounded()))")
                     .font(Theme.num(58)).foregroundColor(Theme.textPrimary)
+                    .lineLimit(1).fixedSize()
                 Text("%").font(Theme.num(24)).foregroundColor(Theme.textSecondary)
-                Spacer()
-                Text("GPU").font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
+                Spacer(minLength: 8)
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(Self.deviceName).font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
+                    Text(Self.gpuLabel).font(Theme.mono(12)).foregroundColor(Theme.textTertiary)
+                }
+                .fixedSize()
             }
             ProgressBar(percent: gpu, accent: accent, height: 9)
+            // PP/TG on one line, occupying the same slot as the providers' pace
+            // caption so the row below (MEM) lines up across all three columns.
+            throughputLine.font(Theme.mono(12, .medium))
         }
+    }
+
+    /// Device + GPU descriptor shown at the OMLX hero's label position (the
+    /// providers show "Weekly 7d" / "resets in …" there). The agent reports only
+    /// the hostname, so name the hardware here.
+    static let deviceName = "M3 Ultra"
+    static let gpuLabel = "60-CORE GPU"
+
+    /// "PP <n> tok/s · TG <n> tok/s" — labels in accent, numbers white, sat where a
+    /// provider's pace line sits. Idle sides read "idle".
+    private var throughputLine: Text {
+        Text("PP ").foregroundColor(accent) + tpsValue(snapshot.ppTps)
+            + Text("  ·  ").foregroundColor(Theme.textTertiary)
+            + Text("TG ").foregroundColor(accent) + tpsValue(snapshot.tgTps)
+    }
+
+    private func tpsValue(_ v: Double?) -> Text {
+        guard let v, v > 0 else { return Text("idle").foregroundColor(Theme.textTertiary) }
+        let f = NumberFormatter(); f.numberStyle = .decimal
+        let n = f.string(from: NSNumber(value: Int(v.rounded()))) ?? "\(Int(v.rounded()))"
+        return Text(n).foregroundColor(Theme.textPrimary)
+            + Text(" tok/s").foregroundColor(Theme.textTertiary)
     }
 
     private func memoryRow(_ mem: Double, big: Bool = false) -> some View {
@@ -456,45 +481,22 @@ struct OMLXColumn: View {
                     Text("\(Int(mem.rounded()))")
                         .font(Theme.num(58)).foregroundColor(Theme.textPrimary)
                     Text("%").font(Theme.num(24)).foregroundColor(Theme.textSecondary)
+                    Spacer()
+                    Text("MEM").font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
                 } else {
                     Text("MEM").font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
-                }
-                Spacer()
-                if let used = snapshot.memUsedGB, let total = snapshot.memTotalGB {
-                    Text(String(format: "%.1f / %.0f GB", used, total))
-                        .font(Theme.mono(12)).foregroundColor(Theme.textTertiary)
-                }
-                if !big {
+                    Spacer()
                     Text("\(Int(mem.rounded()))%")
                         .font(Theme.mono(15, .medium)).foregroundColor(Theme.textPrimary)
                         .frame(minWidth: 46, alignment: .trailing)
-                } else {
-                    Text("MEM").font(Theme.mono(14, .medium)).foregroundColor(Theme.textSecondary)
                 }
             }
             ProgressBar(percent: mem, accent: accent, height: big ? 9 : 6)
-        }
-    }
-
-    /// Prompt-processing (PP) and text-generation (TG) throughput, tok/s.
-    private var throughput: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            tpsRow("PP", snapshot.ppTps, hint: "prompt")
-            tpsRow("TG", snapshot.tgTps, hint: "generation")
-        }
-    }
-
-    private func tpsRow(_ label: String, _ value: Double?, hint: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(label).font(Theme.mono(13, .semibold)).foregroundColor(accent)
-            Text(hint).font(Theme.mono(11)).foregroundColor(Theme.textTertiary)
-            Spacer()
-            if let value, value > 0 {
-                Text("\(Int(value.rounded()))")
-                    .font(Theme.mono(15, .medium)).foregroundColor(Theme.textPrimary)
-                Text("tok/s").font(Theme.mono(11)).foregroundColor(Theme.textTertiary)
-            } else {
-                Text("idle").font(Theme.mono(12)).foregroundColor(Theme.textTertiary)
+            // GB detail below the bar, in the providers' pace-caption slot (same size
+            // and the "on pace" grey) so it lines up with their second row.
+            if let used = snapshot.memUsedGB, let total = snapshot.memTotalGB {
+                Text(String(format: "%.1f / %.0f GB", used, total))
+                    .font(Theme.mono(12, .medium)).foregroundColor(Theme.textTertiary)
             }
         }
     }

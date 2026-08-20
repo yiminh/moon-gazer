@@ -26,20 +26,35 @@ enum ProcessRunner {
         process.standardError = stderr
         try process.run()
 
+        // Drain both pipes on background queues WHILE the child runs. Reading only
+        // after it exits deadlocks when output exceeds the ~64KB pipe buffer — e.g.
+        // `ps -axo command=` with thousands of long command lines — because the child
+        // blocks on a full pipe and never exits, silently timing out. (This is why
+        // live session/process detection always came back empty.)
+        var outData = Data()
+        var errData = Data()
+        let group = DispatchGroup()
+        let readQueue = DispatchQueue(label: "ProcessRunner.read", attributes: .concurrent)
+        group.enter()
+        readQueue.async { outData = stdout.fileHandleForReading.readDataToEndOfFile(); group.leave() }
+        group.enter()
+        readQueue.async { errData = stderr.fileHandleForReading.readDataToEndOfFile(); group.leave() }
+
         let deadline = Date().addingTimeInterval(timeout)
+        var timedOut = false
         while process.isRunning {
             if Date() > deadline {
                 process.terminate()
-                throw ProcessRunnerError.timeout
+                timedOut = true
+                break
             }
             usleep(20_000)
         }
+        group.wait()  // pipes reach EOF once the process exits or is terminated
 
-        let outData = stdout.fileHandleForReading.readDataToEndOfFile()
-        let errData = stderr.fileHandleForReading.readDataToEndOfFile()
+        if timedOut { throw ProcessRunnerError.timeout }
         let out = String(data: outData, encoding: .utf8) ?? ""
         let err = String(data: errData, encoding: .utf8) ?? ""
-
         guard process.terminationStatus == 0 else {
             throw ProcessRunnerError.terminated(process.terminationStatus, err.isEmpty ? out : err)
         }

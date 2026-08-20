@@ -54,7 +54,18 @@ final class SessionMonitor {
                 }
             }
         }
-        return processes
+        // Drop agents that aren't in a real user project (root, internal scratch dirs).
+        return processes.filter { isUserProject($0.cwd) }
+    }
+
+    /// A cwd that represents a real user project worth showing — not the root, an
+    /// agent's internal scratch dir (Claude local-agent-mode "outputs"), or a temp
+    /// path. Filters out the confusing "outputs" / "/" pseudo-tasks.
+    private func isUserProject(_ cwd: String?) -> Bool {
+        guard let cwd, cwd != "/", !cwd.isEmpty else { return false }
+        let noise = ["/Library/Application Support/", "/Library/Caches/",
+                     "/private/", "/tmp/", "/.Trash/"]
+        return !noise.contains { cwd.contains($0) }
     }
 
     private func classify(_ command: String) -> Provider? {
@@ -107,12 +118,15 @@ final class SessionMonitor {
         // Recently finished: project transcript touched recently, no live process there.
         if let projectDirs = try? FileManager.default.contentsOfDirectory(atPath: projectsDir.path) {
             for dir in projectDirs where !runningProjectDirs.contains(dir) {
-                guard let mtime = newestFileDate(in: projectsDir.appendingPathComponent(dir), suffix: ".jsonl") else { continue }
+                let dirURL = projectsDir.appendingPathComponent(dir)
+                guard let mtime = newestFileDate(in: dirURL, suffix: ".jsonl") else { continue }
                 let age = Date().timeIntervalSince(mtime)
                 guard age < finishedWindow else { continue }
+                // Hide internal scratch sessions (e.g. local-agent-mode "outputs").
+                if let cwd = cwdFromTranscript(in: dirURL), !isUserProject(cwd) { continue }
                 let name = decodeProjectName(dir)
                 tasks.append(AgentTask(id: "claude-done-\(dir)", name: name,
-                                       state: .finished, detail: "done \(shortDuration(age)) ago"))
+                                       state: .finished, detail: shortDuration(age)))
             }
         }
         return sorted(tasks)
@@ -173,11 +187,12 @@ final class SessionMonitor {
 
         // Recently finished rollouts (session meta's cwd not among running processes).
         for rollout in recentRollouts {
-            guard let cwd = cwdFromFileHead(rollout.url), !runningCwds.contains(cwd) else { continue }
+            guard let cwd = cwdFromFileHead(rollout.url), isUserProject(cwd),
+                  !runningCwds.contains(cwd) else { continue }
             let age = Date().timeIntervalSince(rollout.mtime)
             tasks.append(AgentTask(id: "codex-done-\(rollout.url.lastPathComponent)",
                                    name: (cwd as NSString).lastPathComponent,
-                                   state: .finished, detail: "done \(shortDuration(age)) ago"))
+                                   state: .finished, detail: shortDuration(age)))
         }
         return sorted(tasks)
     }

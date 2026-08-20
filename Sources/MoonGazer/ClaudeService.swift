@@ -237,7 +237,7 @@ final class ClaudeService {
             account: accountEmail(),
             // Weekly is the hero (unified with Codex); session is the secondary row.
             primary: window("seven_day", label: "Weekly 7d", seconds: 604_800),
-            secondary: window("five_hour", label: "Session 5h", seconds: 18_000),
+            secondary: window("five_hour", label: "5H", seconds: 18_000),
             extraWindows: extraWindows,
             extra: extra,
             fetchedAt: Date(),

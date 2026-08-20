@@ -1,0 +1,120 @@
+{% comment %}
+  Moon Gazer — TRMNL Private Plugin (FRAMED layout, variant B)
+  TRMNL's own idiom, tuned for a real e-ink panel: native .columns, a ruled stat
+  table under each bar, inverted plan chips. e-ink can't hold 1px dither
+  hairlines or 400-weight small text, so rules are crisp SOLID black, the footer
+  separator is a bold dotted rule, small labels are 500-weight, and the plan chip
+  is a solid-black inverse. Same merge variables as the minimal layout.
+{% endcomment %}
+
+<style>
+  /* @@FONTFACE@@ */
+  .layout, .layout *, .title_bar, .title_bar * {
+    font-family: "JetBrains Mono", ui-monospace, monospace !important;
+  }
+  .mg-col { align-items: stretch !important; justify-content: flex-start !important; }
+  .mg-hero { height: 150px; display: flex; align-items: flex-end; width: 100%; overflow: hidden; }
+  .mg-pct { font-size: 0.5em; }
+  .mg-tick { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #000; }
+
+  /* e-ink: dither hairlines vanish -> crisp solid-black rules */
+  .mg-head { display: flex; justify-content: space-between; align-items: center;
+             border-bottom: 2px solid #000; padding-bottom: 6px; }
+  .mg-r { display: flex; justify-content: space-between; align-items: baseline;
+          padding: 9px 0; border-bottom: 1.5px solid #000; }
+  .mg-r--last { border-bottom: 0; }
+  .mg-vdiv { border-left: 2px solid #000; }
+  /* footer (task / model): pushed down, separated by a bold dotted rule */
+  .mg-foot { margin-top: 16px; padding-top: 11px; border-top: 3px dotted #000; }
+
+  /* small labels read too thin on e-ink -> medium weight */
+  .label, .label--gray { font-weight: 500 !important; }
+  /* inverted plan chip: dither bg blurs on e-ink -> solid black, bold */
+  .label--inverted { background: #000 !important; background-image: none !important; font-weight: 700 !important; }
+</style>
+
+<div class="layout">
+{% if claude %}
+  <div class="columns h--full gap--none" style="align-items:stretch">
+
+    {% comment %} ---------- CLAUDE ---------- {% endcomment %}
+    <div class="column mg-col px--5 gap--small">
+      <div class="mg-head">
+        <span class="title title--large">{{ claude.name }}</span>
+        {% if claude.plan != "" %}<span class="label label--inverted">{{ claude.plan }}</span>{% endif %}
+      </div>
+      <span class="label label--gray">WEEKLY · 7 DAY</span>
+      <div class="mg-hero"><div class="value value--xxlarge value--tnums" data-value-fit="true" data-value-fit-max-height="150">{{ claude.weekly }}<span class="mg-pct">%</span></div></div>
+      <div class="progress-bar" style="width:100%">
+        <div class="track">
+          <div class="fill" style="width: {{ claude.weekly }}%"></div>
+          {% if claude.weekly_elapsed %}<div class="mg-tick" style="left:{{ claude.weekly_elapsed }}%"></div>{% endif %}
+        </div>
+      </div>
+      <div class="mt--2">
+        <div class="mg-r"><span class="label">RESETS IN</span><span class="value value--xsmall value--tnums">{{ claude.weekly_reset }}</span></div>
+        <div class="mg-r"><span class="label">PACE</span><span class="value value--xsmall value--tnums">{{ claude.pace_short }}</span></div>
+        <div class="mg-r mg-r--last"><span class="label">{{ claude.sec_label }}</span><span class="value value--xsmall value--tnums">{% if claude.has_sec %}{{ claude.sec_pct }}%{% else %}IDLE{% endif %}</span></div>
+      </div>
+      {% if claude.task != "" %}<div class="mg-foot"><span class="label" data-clamp="1">{{ claude.task }}</span></div>{% endif %}
+    </div>
+
+    {% comment %} ---------- CODEX ---------- {% endcomment %}
+    <div class="column mg-col mg-vdiv px--5 gap--small">
+      <div class="mg-head">
+        <span class="title title--large">{{ codex.name }}</span>
+        {% if codex.plan != "" %}<span class="label label--inverted">{{ codex.plan }}</span>{% endif %}
+      </div>
+      <span class="label label--gray">WEEKLY · 7 DAY</span>
+      <div class="mg-hero"><div class="value value--xxlarge value--tnums" data-value-fit="true" data-value-fit-max-height="150">{{ codex.weekly }}<span class="mg-pct">%</span></div></div>
+      <div class="progress-bar" style="width:100%">
+        <div class="track">
+          <div class="fill" style="width: {{ codex.weekly }}%"></div>
+          {% if codex.weekly_elapsed %}<div class="mg-tick" style="left:{{ codex.weekly_elapsed }}%"></div>{% endif %}
+        </div>
+      </div>
+      <div class="mt--2">
+        <div class="mg-r"><span class="label">RESETS IN</span><span class="value value--xsmall value--tnums">{{ codex.weekly_reset }}</span></div>
+        <div class="mg-r"><span class="label">PACE</span><span class="value value--xsmall value--tnums">{{ codex.pace_short }}</span></div>
+        <div class="mg-r mg-r--last"><span class="label">{{ codex.sec_label }}</span><span class="value value--xsmall value--tnums">{% if codex.has_sec %}{{ codex.sec_pct }}%{% else %}IDLE{% endif %}</span></div>
+      </div>
+      {% if codex.task != "" %}<div class="mg-foot"><span class="label" data-clamp="1">{{ codex.task }}</span></div>{% endif %}
+    </div>
+
+    {% comment %} ---------- OMLX ---------- {% endcomment %}
+    <div class="column mg-col mg-vdiv px--5 gap--small">
+      <div class="mg-head">
+        <span class="title title--large">OMLX</span>
+        <span class="label {% if omlx.online %}label--inverted{% else %}label--outline{% endif %}">{% if omlx.online %}ONLINE{% else %}OFFLINE{% endif %}</span>
+      </div>
+      {% if omlx.online %}
+        <span class="label label--gray">GPU · 60-CORE</span>
+        <div class="mg-hero"><div class="value value--xxlarge value--tnums" data-value-fit="true" data-value-fit-max-height="150">{{ omlx.gpu }}<span class="mg-pct">%</span></div></div>
+        <div class="progress-bar" style="width:100%">
+          <div class="track"><div class="fill" style="width: {{ omlx.gpu }}%"></div></div>
+        </div>
+        <div class="mt--2">
+          <div class="mg-r"><span class="label">DEVICE</span><span class="value value--xsmall">M3 Ultra</span></div>
+          <div class="mg-r"><span class="label">LOADING</span><span class="value value--xsmall value--tnums">{% if omlx.pp %}PP {{ omlx.pp }} · TG {{ omlx.tg }}{% else %}—{% endif %}</span></div>
+          <div class="mg-r mg-r--last"><span class="label">MEMORY</span><span class="value value--xsmall value--tnums">{{ omlx.mem_gb }} · {{ omlx.mem }}%</span></div>
+        </div>
+        {% if omlx.model != "" %}<div class="mg-foot"><span class="label" data-clamp="1">{{ omlx.model }}</span></div>{% endif %}
+      {% else %}
+        <span class="label label--gray">GPU · 60-CORE</span>
+        <div class="mg-hero"><span class="value value--xlarge">OFFLINE</span></div>
+      {% endif %}
+    </div>
+
+  </div>
+{% else %}
+  <div class="flex flex--col flex--center-x flex--center-y gap--medium h--full">
+    <div class="value value--xlarge text--center">Moon Gazer</div>
+    <div class="description text--center">Waiting for the first push from your Mac.</div>
+  </div>
+{% endif %}
+</div>
+
+<div class="title_bar">
+  <span class="title md:title--large">Moon Gazer</span>
+  <span class="instance">{% if stale %}STALE · {% endif %}updated {{ updated_at }}</span>
+</div>

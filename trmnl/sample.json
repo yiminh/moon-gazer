@@ -1,0 +1,50 @@
+{
+  "updated_at": "14:32",
+  "stale": false,
+  "claude": {
+    "name": "CLAUDE",
+    "plan": "Max",
+    "weekly": 26,
+    "weekly_reset": "2d 21h",
+    "weekly_elapsed": 41,
+    "has_sec": true,
+    "sec_label": "5H",
+    "sec_pct": 23,
+    "sec_reset": "4h",
+    "sec_elapsed": 55,
+    "pace": "32% UNDER PACE",
+    "pace_over": false,
+    "pace_on": false,
+    "pace_short": "▼ 32%",
+    "task": "example-project · 3m",
+    "task_working": true
+  },
+  "codex": {
+    "name": "CODEX",
+    "plan": "5X Pro",
+    "weekly": 41,
+    "weekly_reset": "3d 3h",
+    "weekly_elapsed": 57,
+    "has_sec": true,
+    "sec_label": "5.3-SPARK",
+    "sec_pct": 0,
+    "sec_reset": "",
+    "sec_elapsed": 57,
+    "pace": "14% OVER PACE",
+    "pace_over": true,
+    "pace_on": false,
+    "pace_short": "▲ 14%",
+    "task": "",
+    "task_working": false
+  },
+  "omlx": {
+    "configured": true,
+    "online": true,
+    "gpu": 100,
+    "mem": 53,
+    "mem_gb": "51/96G",
+    "model": "Qwen3-30B-4bit",
+    "pp": 651,
+    "tg": 23
+  }
+}

@@ -84,6 +84,28 @@ final class CodexService {
         return true
     }
 
+    /// Map ChatGPT plan codes to human labels. `prolite` is the $100 "5X Pro"
+    /// tier (vs the $200 "20X Pro"); the rest fall back to a capitalized code.
+    static func prettyPlan(_ raw: String) -> String? {
+        switch raw.lowercased() {
+        case "": return nil
+        case "prolite", "pro_lite", "pro-lite": return "5X Pro"
+        case "pro": return "20X Pro"
+        case "plus": return "Plus"
+        case "free": return "Free"
+        default: return raw.capitalized
+        }
+    }
+
+    /// Shorten a model rate-limit name for display: "GPT-5.3-Codex-Spark" -> "5.3-Spark".
+    static func shortLimitName(_ name: String) -> String {
+        let last = name.split(separator: "-").last.map(String.init) ?? name
+        if let r = name.range(of: #"\d+\.\d+"#, options: .regularExpression) {
+            return "\(name[r])-\(last)"
+        }
+        return last
+    }
+
     private func parse(_ data: Data) -> ProviderSnapshot {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             return .failed(.codex, "Invalid usage JSON")
@@ -98,7 +120,8 @@ final class CodexService {
             }
         }
 
-        func window(_ raw: [String: Any]?, id: String, name: String? = nil) -> RateWindow? {
+        func window(_ raw: [String: Any]?, id: String, name: String? = nil,
+                    appendWindow: Bool = true) -> RateWindow? {
             guard let raw else { return nil }
             let percent: Double
             if let p = raw["used_percent"] as? Double { percent = p }
@@ -108,7 +131,9 @@ final class CodexService {
             var resets: Date?
             if let ts = raw["reset_at"] as? Double { resets = Date(timeIntervalSince1970: ts) }
             else if let ts = raw["reset_at"] as? Int { resets = Date(timeIntervalSince1970: TimeInterval(ts)) }
-            let label = name.map { "\($0) \(windowLabel(seconds))" } ?? windowLabel(seconds)
+            let label: String
+            if let name { label = appendWindow ? "\(name) \(windowLabel(seconds))" : name }
+            else { label = windowLabel(seconds) }
             return RateWindow(id: id, label: label, usedPercent: percent, resetsAt: resets,
                               windowSeconds: seconds > 0 ? seconds : nil)
         }
@@ -132,7 +157,8 @@ final class CodexService {
             for (index, entry) in additional.enumerated() {
                 guard let name = entry["limit_name"] as? String else { continue }
                 let rl = entry["rate_limit"] as? [String: Any]
-                if let w = window(rl?["primary_window"] as? [String: Any], id: "extra-\(index)", name: name) {
+                if let w = window(rl?["primary_window"] as? [String: Any], id: "extra-\(index)",
+                                  name: Self.shortLimitName(name), appendWindow: false) {
                     extraWindows.append(w)
                 }
             }
@@ -151,10 +177,9 @@ final class CodexService {
             }
         }
 
-        let planRaw = (json["plan_type"] as? String) ?? ""
         return ProviderSnapshot(
             provider: .codex,
-            plan: planRaw.isEmpty ? nil : planRaw.capitalized,
+            plan: Self.prettyPlan((json["plan_type"] as? String) ?? ""),
             account: accountEmail(),
             primary: primary,
             secondary: secondary,

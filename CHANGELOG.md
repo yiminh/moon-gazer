@@ -7,6 +7,42 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 **MAJOR.MINOR.PATCH**: MAJOR for incompatible changes, MINOR for backward-compatible
 features, PATCH for backward-compatible fixes.
 
+## [1.7.0] — 2026-08-20
+
+### Added
+- **E-ink frontend (`trmnl/`).** A TRMNL Private Plugin that shows the same Claude / Codex
+  / OMLX usage on an e-ink device (a TRMNL device, or the TRMNL app on your own e-reader).
+  Two Liquid layouts — **minimal** and **framed** — over flat merge variables, a webhook
+  push script (`push-trmnl.py`) that reuses `Moon Gazer --json`, and an optional font
+  embedder (`inject_font.py`). Reset/pace/tick are pre-computed on the Mac.
+- **Codex `5X Pro` plan and per-model quota.** Maps the `prolite` plan code to `5X Pro`,
+  and surfaces `additional_rate_limits` (e.g. `GPT-5.3-Codex-Spark`, shown as `5.3-Spark`)
+  as a secondary window.
+
+### Changed
+- **Aligned three-column layout.** Every column now shares one row rhythm so they line up:
+  big % + a two-line right label (providers show `Weekly 7d` / `reset …`, OMLX shows the
+  device / GPU descriptor), a bar, a pace-or-throughput line in the same slot, an aligned
+  second row, then the task/model section.
+- **OMLX pane** mirrors the providers: PP/TG throughput collapses to one line sitting where
+  a provider's pace caption is (so memory lines up with the session row), the memory GB
+  detail moves below its bar, and the model name gets a leading accent dot to align with
+  the task list.
+- Session window is labelled `5H`; reset text shortened (`reset 6d 22h`); big numbers no
+  longer wrap at 100%; the header status shows `WORKING` / `IDLE` / `QUIET` without the
+  `×N` count (the count is visible in the task list); task rows show a bare duration.
+
+### Fixed
+- **Live session/process detection (deadlock).** `ProcessRunner` read a child's output only
+  *after* it exited, which hung whenever the output exceeded the ~64 KB pipe buffer — as
+  `ps` does with today's very long `claude` / `codex` command lines — so the scan silently
+  timed out and the status was stuck on `QUIET`. Output is now drained concurrently, so
+  running/idle agents are detected again.
+- Session scan hides internal, non-project agents (root `cwd`, `~/Library/Application
+  Support` scratch dirs) so pseudo-tasks like `outputs` / `/` no longer appear.
+- A Codex per-model quota is no longer mislabelled as the 5-hour session when the API
+  returns no active session window.
+
 ## [1.6.0] — 2026-08-13
 
 ### Added

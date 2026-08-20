@@ -23,9 +23,9 @@ GPU/memory of another machine on your LAN (e.g. one running a local model).*
 
 Two panes, one per provider. Each shows:
 
-- **Plan + account** (e.g. Max / Plus)
-- **Session (5h) window** — a big hero number + reset countdown
-- **Weekly (7d) window**, plus any per-model windows
+- **Plan + account** (e.g. Max / 5X Pro)
+- **Weekly (7d) window** — the big hero number + reset countdown
+- **Second window** — the 5-hour session, or a per-model quota (e.g. Codex `5.3-Spark`)
 - **Extra usage / credits** when present
 - **Pace marker** — a tick on each bar at the fraction of the window's *time* that has
   elapsed. Bar past the tick = burning faster than the clock (`▲ n% over pace`); short of
@@ -55,9 +55,9 @@ files (`~/.claude/projects`, `~/.codex/sessions`). Usage refreshes every 5 min; 
 scan every 5 s. On a failed fetch the last good data stays on screen, marked stale.
 
 > **About the Codex 5-hour window:** OpenAI only returns a 5h window while it's actively
-> being metered. When idle, the API returns just the weekly window, so Moon Gazer shows
-> a faint `Session 5h — no active window` placeholder until it reappears. This is a
-> property of the API, not the app.
+> being metered. When idle, the API returns just the weekly window (plus any per-model
+> quota), so the second row shows that quota — e.g. `5.3-Spark` — instead of a session.
+> This is a property of the API, not the app.
 
 ## ⚠️ Disclaimer — please read
 
@@ -157,6 +157,14 @@ computed numbers are published — no tokens leave the Mac. Setup and details in
 ./build-app.sh          # if not built yet
 ./mobile/setup-widget.sh
 ```
+
+## E-ink display (TRMNL)
+
+Show the same data on an e-ink device via [TRMNL](https://usetrmnl.com) — a TRMNL device
+or the TRMNL app on your own e-reader (BYOD). A small Mac-side script pushes the computed
+numbers to a TRMNL Private Plugin, which renders them server-side to 1-bit e-ink. Two
+Liquid layouts (minimal / framed) are included. Only computed numbers are pushed — no
+tokens leave the Mac. See [`trmnl/README.md`](trmnl/README.md).
 
 ## Recommended display
 
